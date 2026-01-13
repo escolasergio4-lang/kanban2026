@@ -1,7 +1,7 @@
 var CACHE_NAME = 'nullboard-educacional-v1';
 var urlsToCache = [
   './',
-  './nullboard.html',
+  './index.html',
   './manifest.json',
   './icon.png',
   './extras/Barlow-Regular.woff',
@@ -15,20 +15,20 @@ var urlsToCache = [
   './extras/favicon-16.png'
 ];
 
-self.addEventListener('install', function(event) {
+self.addEventListener('install', function (event) {
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then(function(cache) {
+      .then(function (cache) {
         console.log('Opened cache');
         return cache.addAll(urlsToCache);
       })
   );
 });
 
-self.addEventListener('fetch', function(event) {
+self.addEventListener('fetch', function (event) {
   event.respondWith(
     caches.match(event.request)
-      .then(function(response) {
+      .then(function (response) {
         if (response) {
           return response;
         }
