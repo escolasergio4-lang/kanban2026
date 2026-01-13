@@ -1596,6 +1596,54 @@
 			outline: 1px solid #fc2a;
 			color: #ddd;
 		}
+
+		/* Mobile Responsiveness */
+		@media (max-width: 1024px) {
+			html {
+				--fs: 15;
+				/* Increase base font size significantly */
+			}
+
+			.board {
+				padding: 10px;
+				/* Reduce padding to maximize space */
+			}
+
+			/* Always show controls on mobile (no hover available) */
+			.board .note .ops {
+				opacity: 1;
+			}
+
+			.board .head .menu {
+				opacity: 1;
+			}
+
+			/* Increase touch targets */
+			.board .note .ops .teaser,
+			.board .head .menu .teaser {
+				padding: 5px 10px;
+				font-size: 1.2em;
+			}
+
+			/* Make bulk menus (X, R, etc) easier to tap when open */
+			.board .note .ops .bulk a,
+			.board .head .menu .bulk a {
+				padding: 5px 10px;
+				display: inline-block;
+			}
+
+			/* Adjust Layout Adjuster */
+			.config,
+			.logo {
+				font-size: 1.1em;
+			}
+
+			/* Ensure lists don't get too wide on small screens if calc goes wrong, 
+		   but respect the Kanban horizontal scroll */
+			.board .list {
+				max-width: 90vw;
+			}
+		}
 	</style>
 
 </head>
