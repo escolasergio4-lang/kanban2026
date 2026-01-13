@@ -1611,12 +1611,215 @@
 			color: #ddd;
 		}
 
-		/* Mobile Responsiveness */
+		/* Mobile Responsiveness & Modern UI */
+		@media (max-width: 1024px) {
+			html {
+				--fs: 16;
+			}
 
-			/* Floating Install Button Adjustment */
+			body {
+				padding-top: 60px;
+				/* Space for Top Bar */
+				background: #E9F5FF;
+			}
+
+			/* --- Top Bar & Header Elements --- */
+
+			/* 1. App Title (Logo) - Top Left */
+			.logo {
+				position: fixed;
+				top: 0;
+				left: 0;
+				height: 60px;
+				width: auto;
+				z-index: 1001;
+				background: #E9F5FF;
+				/* Matches body */
+				display: flex;
+				align-items: center;
+				padding: 0 15px;
+				box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+				font-size: 1.2em;
+				color: #1A5799;
+			}
+
+			.logo a.site {
+				color: #1A5799;
+				font-weight: bold;
+			}
+
+			/* Logo Dropdown (About, License) */
+			.logo .bulk {
+				position: absolute;
+				top: 60px;
+				left: 0;
+				background: #fff;
+				border: 1px solid #93BFEF;
+				padding: 10px;
+				box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+				width: 200px;
+				display: none;
+				/* Hidden by default */
+			}
+
+			/* Mobile Interaction: Logo Click/Hover shows menu */
+			.logo:hover .bulk,
+			.logo:active .bulk {
+				display: block;
+				height: auto;
+				opacity: 1;
+			}
+
+			/* 2. Main Menu Trigger (Hamburger) - Top Right */
+			.config {
+				position: fixed;
+				top: 0;
+				right: 0;
+				width: 60px;
+				height: 60px;
+				z-index: 1002;
+				/* Above logo bar level */
+				background: #E9F5FF;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				border-bottom: 1px solid #93BFEF;
+			}
+
+			.config .teaser {
+				font-size: 32px;
+				color: #1A5799;
+				padding: 10px;
+				margin: 0;
+				width: 100%;
+				text-align: center;
+			}
+
+			.config .teaser i {
+				font-style: normal;
+			}
+
+			.config .teaser u {
+				display: none;
+			}
+
+			/* Hide backup status icon in header to save space */
+
+			/* --- Side Menu (Drawer) --- */
+			/* When .config is hovered/active (tapped on mobile) */
+			.config:hover .bulk,
+			.config:active .bulk,
+			.config:focus-within .bulk {
+				display: block;
+				position: fixed;
+				top: 60px;
+				/* Below header */
+				right: 0;
+				bottom: 0;
+				width: 85vw;
+				/* Wide drawer */
+				max-width: 320px;
+				/* But not too wide on tablets */
+				height: calc(100vh - 60px);
+				background: #fff;
+				border-left: 2px solid #1A5799;
+				box-shadow: -5px 0 15px rgba(0, 0, 0, 0.2);
+				overflow-y: auto;
+				padding: 20px;
+				margin: 0;
+				opacity: 1;
+				transition: transform 0.3s ease;
+			}
+
+			/* Ensure content inside drawer is readable */
+			.config .bulk a {
+				padding: 12px 5px;
+				border-bottom: 1px solid #eee;
+				font-size: 1.1em;
+				display: block;
+			}
+
+			.config .bulk .boards {
+				margin: 10px 0;
+				max-height: none;
+				/* Show all boards */
+			}
+
+			/* --- Main Content Layout --- */
+			.board {
+				margin-top: 10px;
+				padding: 0 5px 80px 5px;
+				/* Bottom padding for install btn */
+				width: 100%;
+				max-width: 100%;
+			}
+
+			/* Kanban Lists - Horizontal Scrolling Restored */
+			.board .lists {
+				display: flex;
+				flex-direction: row;
+				/* FORCE HORIZONTAL */
+				white-space: nowrap;
+				/* PREVENT WRAPPING */
+				overflow-x: auto;
+				/* ALLOW SCROLL */
+				padding-bottom: 20px;
+				/* Scrollbar space */
+				align-items: flex-start;
+				/* Top align lists */
+			}
+
+			.board .list {
+				display: inline-block;
+				/* Essential for horizontal */
+				width: 280px !important;
+				/* Fixed width for better scrolling */
+				min-width: 280px;
+				margin: 0 10px 10px 0;
+				max-width: none;
+				box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+				white-space: normal;
+				/* Allow notes inside to wrap */
+				vertical-align: top;
+			}
+
+			/* --- Card Controls & Interaction --- */
+			.board .note .ops {
+				opacity: 1;
+				/* Always visible controls */
+				background: #f0f0f0;
+				border-radius: 4px;
+				padding: 4px;
+				top: 2px;
+				right: 2px;
+			}
+
+			.board .note .ops .teaser {
+				font-size: 1.4em;
+				color: #1A5799;
+				padding: 5px 10px;
+			}
+
+			/* Expand submenu for note ops */
+			.board .note .ops:hover .bulk,
+			.board .note .ops:active .bulk {
+				display: flex;
+				gap: 15px;
+				padding: 5px 10px;
+			}
+
+			.board .note .ops .bulk a {
+				font-size: 1.2em;
+				padding: 5px;
+			}
+
+			/* Floating Install Button */
 			#install-btn {
-				bottom: 80px !important;
-				/* Move above navbar */
+				bottom: 20px !important;
+				right: 20px !important;
+				background-color: #1A5799 !important;
+				/* Cobalt Blue */
+				box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3) !important;
 			}
 		}
 	</style>
@@ -5118,175 +5321,175 @@
 
 </html>/* Mobile Responsiveness & Modern UI */
 @media (max-width: 1024px) {
-	html {
-		--fs: 16;
-	}
+html {
+--fs: 16;
+}
 
-	body {
-		padding-top: 60px; /* Space for Top Bar */
-		background: #E9F5FF;
-	}
+body {
+padding-top: 60px; /* Space for Top Bar */
+background: #E9F5FF;
+}
 
-	/* --- Top Bar & Header Elements --- */
-	
-	/* 1. App Title (Logo) - Top Left */
-	.logo {
-		position: fixed;
-		top: 0;
-		left: 0;
-		height: 60px;
-		width: auto;
-		z-index: 1001;
-		background: #E9F5FF; /* Matches body */
-		display: flex;
-		align-items: center;
-		padding: 0 15px;
-		box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-		font-size: 1.2em;
-		color: #1A5799;
-	}
-	
-	.logo a.site { color: #1A5799; font-weight: bold; }
-	
-	/* Logo Dropdown (About, License) */
-	.logo .bulk {
-		position: absolute;
-		top: 60px;
-		left: 0;
-		background: #fff;
-		border: 1px solid #93BFEF;
-		padding: 10px;
-		box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
-		width: 200px;
-		display: none; /* Hidden by default */
-	}
-	
-	/* Mobile Interaction: Logo Click/Hover shows menu */
-	.logo:hover .bulk, .logo:active .bulk {
-		display: block;
-		height: auto;
-		opacity: 1;
-	}
+/* --- Top Bar & Header Elements --- */
 
-	/* 2. Main Menu Trigger (Hamburger) - Top Right */
-	.config {
-		position: fixed;
-		top: 0;
-		right: 0;
-		width: 60px;
-		height: 60px;
-		z-index: 1002; /* Above logo bar level */
-		background: #E9F5FF; 
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		border-bottom: 1px solid #93BFEF;
-	}
+/* 1. App Title (Logo) - Top Left */
+.logo {
+position: fixed;
+top: 0;
+left: 0;
+height: 60px;
+width: auto;
+z-index: 1001;
+background: #E9F5FF; /* Matches body */
+display: flex;
+align-items: center;
+padding: 0 15px;
+box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+font-size: 1.2em;
+color: #1A5799;
+}
 
-	.config .teaser {
-		font-size: 32px;
-		color: #1A5799;
-		padding: 10px;
-		margin: 0;
-		width: 100%;
-		text-align: center;
-	}
-	
-	.config .teaser i { font-style: normal; }
-	.config .teaser u { display: none; } /* Hide backup status icon in header to save space */
+.logo a.site { color: #1A5799; font-weight: bold; }
 
-	/* --- Side Menu (Drawer) --- */
-	/* When .config is hovered/active (tapped on mobile) */
-	.config:hover .bulk, 
-	.config:active .bulk,
-	.config:focus-within .bulk {
-		display: block;
-		position: fixed;
-		top: 60px; /* Below header */
-		right: 0;
-		bottom: 0;
-		width: 85vw; /* Wide drawer */
-		max-width: 320px; /* But not too wide on tablets */
-		height: calc(100vh - 60px);
-		background: #fff;
-		border-left: 2px solid #1A5799;
-		box-shadow: -5px 0 15px rgba(0,0,0,0.2);
-		overflow-y: auto;
-		padding: 20px;
-		margin: 0;
-		opacity: 1;
-		transition: transform 0.3s ease;
-	}
-	
-	/* Ensure content inside drawer is readable */
-	.config .bulk a {
-		padding: 12px 5px;
-		border-bottom: 1px solid #eee;
-		font-size: 1.1em;
-		display: block;
-	}
-	
-	.config .bulk .boards {
-		margin: 10px 0;
-		max-height: none; /* Show all boards */
-	}
+/* Logo Dropdown (About, License) */
+.logo .bulk {
+position: absolute;
+top: 60px;
+left: 0;
+background: #fff;
+border: 1px solid #93BFEF;
+padding: 10px;
+box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+width: 200px;
+display: none; /* Hidden by default */
+}
 
-	/* --- Main Content Layout --- */
-	.board {
-		margin-top: 10px;
-		padding: 0 5px 80px 5px; /* Bottom padding for install btn */
-		width: 100%;
-		max-width: 100%;
-	}
+/* Mobile Interaction: Logo Click/Hover shows menu */
+.logo:hover .bulk, .logo:active .bulk {
+display: block;
+height: auto;
+opacity: 1;
+}
 
-	/* Kanban Lists Stacked */
-	.board .lists {
-		display: flex;
-		flex-direction: column;
-		white-space: normal;
-	}
+/* 2. Main Menu Trigger (Hamburger) - Top Right */
+.config {
+position: fixed;
+top: 0;
+right: 0;
+width: 60px;
+height: 60px;
+z-index: 1002; /* Above logo bar level */
+background: #E9F5FF;
+display: flex;
+align-items: center;
+justify-content: center;
+border-bottom: 1px solid #93BFEF;
+}
 
-	.board .list {
-		display: block;
-		width: 96% !important;
-		margin: 15px auto;
-		max-width: none;
-		box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-	}
+.config .teaser {
+font-size: 32px;
+color: #1A5799;
+padding: 10px;
+margin: 0;
+width: 100%;
+text-align: center;
+}
 
-	/* --- Card Controls & Interaction --- */
-	.board .note .ops {
-		opacity: 1; /* Always visible controls */
-		background: #f0f0f0;
-		border-radius: 4px;
-		padding: 4px;
-		top: 2px;
-		right: 2px;
-	}
-	
-	.board .note .ops .teaser {
-		font-size: 1.4em;
-		color: #1A5799;
-		padding: 5px 10px;
-	}
-	
-	/* Expand submenu for note ops */
-	.board .note .ops:hover .bulk, .board .note .ops:active .bulk {
-		display: flex;
-		gap: 15px;
-		padding: 5px 10px;
-	}
-	
-	.board .note .ops .bulk a {
-		font-size: 1.2em;
-		padding: 5px;
-	}
+.config .teaser i { font-style: normal; }
+.config .teaser u { display: none; } /* Hide backup status icon in header to save space */
 
-	/* Floating Install Button */
-	#install-btn {
-		bottom: 20px !important;
-		right: 20px !important;
-		background-color: #1A5799 !important; /* Cobalt Blue */
-		box-shadow: 0 4px 10px rgba(0,0,0,0.3) !important;
-	}
+/* --- Side Menu (Drawer) --- */
+/* When .config is hovered/active (tapped on mobile) */
+.config:hover .bulk,
+.config:active .bulk,
+.config:focus-within .bulk {
+display: block;
+position: fixed;
+top: 60px; /* Below header */
+right: 0;
+bottom: 0;
+width: 85vw; /* Wide drawer */
+max-width: 320px; /* But not too wide on tablets */
+height: calc(100vh - 60px);
+background: #fff;
+border-left: 2px solid #1A5799;
+box-shadow: -5px 0 15px rgba(0,0,0,0.2);
+overflow-y: auto;
+padding: 20px;
+margin: 0;
+opacity: 1;
+transition: transform 0.3s ease;
+}
+
+/* Ensure content inside drawer is readable */
+.config .bulk a {
+padding: 12px 5px;
+border-bottom: 1px solid #eee;
+font-size: 1.1em;
+display: block;
+}
+
+.config .bulk .boards {
+margin: 10px 0;
+max-height: none; /* Show all boards */
+}
+
+/* --- Main Content Layout --- */
+.board {
+margin-top: 10px;
+padding: 0 5px 80px 5px; /* Bottom padding for install btn */
+width: 100%;
+max-width: 100%;
+}
+
+/* Kanban Lists Stacked */
+.board .lists {
+display: flex;
+flex-direction: column;
+white-space: normal;
+}
+
+.board .list {
+display: block;
+width: 96% !important;
+margin: 15px auto;
+max-width: none;
+box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+/* --- Card Controls & Interaction --- */
+.board .note .ops {
+opacity: 1; /* Always visible controls */
+background: #f0f0f0;
+border-radius: 4px;
+padding: 4px;
+top: 2px;
+right: 2px;
+}
+
+.board .note .ops .teaser {
+font-size: 1.4em;
+color: #1A5799;
+padding: 5px 10px;
+}
+
+/* Expand submenu for note ops */
+.board .note .ops:hover .bulk, .board .note .ops:active .bulk {
+display: flex;
+gap: 15px;
+padding: 5px 10px;
+}
+
+.board .note .ops .bulk a {
+font-size: 1.2em;
+padding: 5px;
+}
+
+/* Floating Install Button */
+#install-btn {
+bottom: 20px !important;
+right: 20px !important;
+background-color: #1A5799 !important; /* Cobalt Blue */
+box-shadow: 0 4px 10px rgba(0,0,0,0.3) !important;
+}
 }
