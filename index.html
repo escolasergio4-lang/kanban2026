@@ -146,6 +146,11 @@
         .fab { position: fixed; bottom: 25px; right: 25px; width: 56px; height: 56px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); border: none; cursor: pointer; z-index: 90; padding-bottom: env(safe-area-inset-bottom); }
         .form-group input { width: 100%; padding: 10px; border: 1px solid var(--text-muted); border-radius: 6px; background: var(--bg-body); color: var(--text-main); margin-top:5px; }
 
+        /* Estilos do Tutorial */
+        .tutorial-section { margin-bottom: 20px; border-bottom: 1px solid rgba(0,0,0,0.1); padding-bottom: 15px; }
+        .tutorial-section:last-child { border-bottom: none; }
+        .tutorial-title { font-weight: 700; color: var(--primary); margin-bottom: 5px; display: block; }
+        .tutorial-text { font-size: 0.95rem; line-height: 1.5; color: var(--text-main); margin: 0; }
     </style>
 </head>
 <body>
@@ -189,18 +194,60 @@
 
     <div class="menu-section">
         <h3>Sobre</h3>
-        <button class="menu-item" onclick="openModal('tutorialModal')">💡 Como Usar</button>
+        <button class="menu-item" onclick="openModal('tutorialModal')">💡 Como Usar (Guia)</button>
         <button class="menu-item" onclick="openModal('aboutModal')">ℹ️ Sobre o App</button>
         <button class="menu-item" onclick="openModal('licenseModal')">⚖️ Licença</button>
     </div>
     
-    <div style="margin-top:auto; font-size:0.8rem; color:var(--text-muted); text-align:center;">Acompanhamento do Planejamento Educacional v3.3<br>Sérgio Araújo</div>
+    <div style="margin-top:auto; font-size:0.8rem; color:var(--text-muted); text-align:center;">Planejamento Educacional v3.4<br>Sérgio Araújo</div>
 </div>
 
-<div id="tutorialModal" class="modal"><div class="modal-content"><button class="modal-close" onclick="closeModal('tutorialModal')">×</button><h2>Bem-vindo!</h2><p>Use este app para seu planejamento escolar.</p><ul><li>Deslize para ver as listas.</li><li>Toque para editar.</li><li>Arraste para mover.</li></ul><button class="btn btn-primary" onclick="closeModal('tutorialModal')">Entendi</button></div></div>
+<div id="tutorialModal" class="modal">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeModal('tutorialModal')">×</button>
+        <h2 style="color:var(--primary); border-bottom:2px solid var(--primary); padding-bottom:10px;">Como usar o Quadro?</h2>
+        
+        <div class="tutorial-section">
+            <span class="tutorial-title">1. O que é isso?</span>
+            <p class="tutorial-text">
+                Imagine um quadro branco na parede da sala dos professores, cheio de post-its. Este aplicativo é a versão digital disso. Ao invés de folhas soltas ou agendas lineares, aqui seu planejamento é visual e flexível.
+            </p>
+        </div>
+
+        <div class="tutorial-section">
+            <span class="tutorial-title">2. A Estrutura (Listas e Cartões)</span>
+            <p class="tutorial-text">
+                • <b>Listas (Colunas):</b> Representam "momentos" ou "categorias". Ex: "A Fazer", "Em Andamento", "1ª Unidade".<br>
+                • <b>Cartões (Notas):</b> São suas aulas, atividades ou lembretes. Ex: "Aula sobre Ditadura", "Prova da 5ª série".
+            </p>
+        </div>
+
+        <div class="tutorial-section">
+            <span class="tutorial-title">3. Acompanhando a Execução</span>
+            <p class="tutorial-text">
+                O grande segredo do método Kanban é <b>mover as coisas</b>. <br>
+                Quando você planeja uma aula, ela nasce na lista "A Fazer". Quando você começa a preparar o material, arraste-a para "Preparando". Quando a aula for dada, arraste para "Concluído".<br><br>
+                <i>Isso gera satisfação visual e ajuda a ver o que está acumulando e o que já foi vencido.</i>
+            </p>
+        </div>
+
+        <div class="tutorial-section">
+            <span class="tutorial-title">4. Comandos Básicos</span>
+            <p class="tutorial-text">
+                • <b>Criar:</b> Toque no <b>+</b> no rodapé para nova lista ou no topo da coluna para novo cartão.<br>
+                • <b>Editar:</b> Basta tocar no texto e escrever.<br>
+                • <b>Mover:</b> Segure o cartão com o dedo e arraste para onde quiser.<br>
+                • <b>Apagar:</b> Apague todo o texto do cartão e confirme.
+            </p>
+        </div>
+
+        <button class="btn btn-primary" onclick="closeModal('tutorialModal')">Entendi, vamos começar!</button>
+    </div>
+</div>
+
 <div id="aboutModal" class="modal"><div class="modal-content"><button class="modal-close" onclick="closeModal('aboutModal')">×</button><h2>Sobre</h2><p>Nullboard Educacional - Versão PWA.</p></div></div>
 <div id="licenseModal" class="modal"><div class="modal-content"><button class="modal-close" onclick="closeModal('licenseModal')">×</button><h2>Licença</h2><p>BSD 2-Clause + Commons Clause.</p></div></div>
-<div id="pdfModal" class="modal"><div class="modal-content"><button class="modal-close" onclick="closeModal('pdfModal')">×</button><h2>PDF</h2><div class="form-group"><label>Prof:</label><input id="pdfName" value="Sérgio Araújo"></div><div class="form-group"><label>Escola:</label><input id="pdfSchool" value="Escola Municipal Januário Eleodoro"></div><div class="form-group"><label>Turma:</label><input id="pdfClass"></div><button class="btn btn-primary" onclick="generatePDF()">Gerar</button></div></div>
+<div id="pdfModal" class="modal"><div class="modal-content"><button class="modal-close" onclick="closeModal('pdfModal')">×</button><h2>Exportar PDF</h2><div class="form-group"><label>Prof:</label><input id="pdfName" value="Sérgio Araújo"></div><div class="form-group"><label>Escola:</label><input id="pdfSchool" value="Escola Municipal Januário Eleodoro"></div><div class="form-group"><label>Turma:</label><input id="pdfClass"></div><button class="btn btn-primary" onclick="generatePDF()">Gerar Documento A4</button></div></div>
 
 <script>
     // --- PWA / INSTALL ---
@@ -252,6 +299,11 @@
     let appData = JSON.parse(localStorage.getItem('nullboard-v3')) || getInitialData();
     let currentBoard = appData.boards.find(b => b.id === appData.currentBoardId) || appData.boards[0];
 
+    // Se primeira visita, mostra tutorial
+    if (!localStorage.getItem('nullboard-v3')) {
+        setTimeout(() => document.getElementById('tutorialModal').style.display='flex', 1000);
+    }
+
     const boardEl = document.getElementById('board');
     const titleEl = document.getElementById('headerTitle');
     const sidebarListEl = document.getElementById('boardListMenu');
@@ -297,22 +349,21 @@
     function exportBackup() { const a=document.createElement('a'); a.href="data:text/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(appData)); a.download=`backup-${Date.now()}.nbx`; a.click(); }
     function importBackup(i) { const r=new FileReader(); r.onload=e=>{appData=JSON.parse(e.target.result);saveData();location.reload();}; r.readAsText(i.files[0]); }
     
-    // --- FUNÇÃO DE PDF PROFISSIONAL (Atualizada) ---
+    // --- GERAR PDF PROFISSIONAL (A4) ---
     function generatePDF() {
         const name = document.getElementById('pdfName').value;
         const school = document.getElementById('pdfSchool').value;
         const className = document.getElementById('pdfClass').value || "Sem Turma Definida";
         const date = new Date().toLocaleDateString('pt-BR');
 
-        // Cria estrutura para impressão A4
+        // Cria estrutura oculta para A4
         const content = document.createElement('div');
         content.style.width = '100%';
-        content.style.maxWidth = '750px'; // Garante o fit A4
+        content.style.maxWidth = '750px'; 
         content.style.margin = '0 auto';
         content.style.fontFamily = "'Helvetica', 'Arial', sans-serif";
         content.style.color = '#333';
         
-        // Cabeçalho
         content.innerHTML = `
             <div style="text-align:center; margin-bottom: 20px; border-bottom: 3px solid #1A5799; padding-bottom: 10px;">
                 <h2 style="color:#1A5799; margin:0; text-transform:uppercase;">${school}</h2>
@@ -332,48 +383,36 @@
             </table>
         `;
 
-        // Conteúdo das Listas
         let hasContent = false;
         currentBoard.lists.forEach(list => {
             if (list.cards.length > 0) {
                 hasContent = true;
-                const listHtml = `
+                content.innerHTML += `
                     <div style="margin-bottom: 20px; page-break-inside: avoid;">
                         <div style="background-color: #f0f4f8; border-left: 5px solid #1A5799; padding: 8px 15px; margin-bottom: 10px;">
                             <h3 style="margin:0; color:#1A5799; font-size:16px;">${list.title}</h3>
                         </div>
                         <ul style="list-style: none; padding: 0; margin: 0;">
-                            ${list.cards.map(cardText => `
+                            ${list.cards.map(c => `
                                 <li style="border-bottom: 1px dashed #ccc; padding: 10px 0; margin-left: 10px; font-size: 12px; line-height: 1.5;">
-                                    ${cardText.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')}
-                                </li>
-                            `).join('')}
+                                    ${c.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')}
+                                </li>`).join('')}
                         </ul>
-                    </div>
-                `;
-                content.innerHTML += listHtml;
+                    </div>`;
             }
         });
 
-        if (!hasContent) {
-            content.innerHTML += '<p style="text-align:center; color:#999;"><i>Nenhum conteúdo registrado para impressão.</i></p>';
-        }
+        if (!hasContent) content.innerHTML += '<p style="text-align:center; color:#999;"><i>Vazio.</i></p>';
 
-        // Gera PDF
         const opt = {
-            margin:       [15, 15, 15, 15],
-            filename:     `Planejamento - ${className}.pdf`,
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2, useCORS: true, scrollY: 0 },
-            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            margin: [15, 15, 15, 15],
+            filename: `Planejamento - ${className}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
 
-        html2pdf().set(opt).from(content).save().then(() => {
-            closeModal('pdfModal');
-        }).catch(err => {
-            console.error(err);
-            alert("Erro ao gerar PDF.");
-        });
+        html2pdf().set(opt).from(content).save().then(() => closeModal('pdfModal'));
     }
 
     if(localStorage.getItem('theme')==='dark') document.body.classList.add('dark-mode');
