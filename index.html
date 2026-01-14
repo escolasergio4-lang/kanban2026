@@ -2060,13 +2060,13 @@
 
 <script type="text/javascript">
 
-	Number.prototype.clamp = function (mi	, m	 ) {
-		return Math.min(Math.max(this, min), max);
+	Number.prototype.clamp = function (min, max) {
+		return Math.min(Mat	.ma	 this, min), max);
 	};
 
 	/*
-	 *	ad	 a blank line to push 'Prevent this page from opening ...'
-		 	tack-on from the actual message we are trying to display
+	 *	ad	 a blank line to push 'Prevent	 his page from opening ...'
+		 	tack-on from the actual mess	 e we are trying to display
 	 */
 	var confirm_org = window.confirm;
 	var alert_org = window.alert;
@@ -2208,16 +2208,15 @@
 
 		//
 
-		getBoardInd			) {			 return this.boardIndex;
+		getBoardInd() {
+			return this.boardIndex;
 		}
 
 		saveBoar			 ard) {
-			/*
-			 *	1. assign new revision (next unused)
+			/					 			  assign new revision (next unused)
 			 			  trim all in-between revisions 			 ssed by undos if any
-			 *	3. cap history as per config
-			 */
-			var meta = this.boardIndex.get(board.id);
+			 			  cap history as per config
+			 			 		var meta = this.boardIndex.get(board.id);
 			var ok_data, ok_meta;
 
 			delete board.history; // remove temporarily
@@ -2255,21 +2254,18 @@
 						console.log(`Deleted revision ${rev} of ${board.id} (${board.title})`);
 					}
 					else {
-						rebuild			sh(			 ;
+						rebuild.push(rev);
 					}
-						 				meta.history = rebuild;
+				}
+				meta.history = rebuild;
 			}
 
-			/*
-			 *	save meta
-			 */
-			ok_meta = this.setJson('board.' + board.id + '.meta', meta) &&
-				this.setJson			oar			 + board.id, me			 urrent); // for older versions
+			/*				 *			 e meta
+			 *			 	ok_meta = this.setJson('board.' + board.id + '.meta', meta) &&
+				this.setJson('board.' + board.id, meta.current); // for older versions
 
-			/*
-			 *	run backups
-			 */
-			if (ok_meta && ok_data)
+			/*				 *			  backups
+			 *			 	if (ok_meta && ok_data)
 				this.backupBoard(board.id, board, meta)
 
 			board.history = meta.history; // restore
@@ -2373,14 +2369,12 @@
 
 			this.backupBoard(board_id, null, meta);
 
-			ret		n t		 .setJson('		 rd.' + board_id + '.meta', meta);
+			return this.setJson('board.' + board_id + '.meta', meta);
 		}
 
 		/*
-		 *	private
-		 */
-
-		getItem(name) { throw 'implement-me'; }
+		 *			 vate
+		 */		 	getItem(name) { throw 'implement-me'; }
 		setItem(name) { throw 'implement-me'; }
 		delItem(name) { throw 'implement-me'; }
 
@@ -2397,17 +2391,16 @@
 
 		setJson(name, val) {
 			if (!this.setItem(name, JSON.stringify(val))) {
-				console.log("setJson(" + name 		") 		 led");
-				 eturn false;
+				console.log("setJson(" + name + ") failed");
+				return false;
 			}
 
 			return true;
 		}
 
 		/*
-		 *	config
-		 */
-		fixupConfig(newInstall) {
+		 *			 fig
+		 */		 fixupConfig(newInstall) {
 			var conf = this.conf;
 			var simp = (new SimpleBackup).type;
 
@@ -2451,9 +2444,8 @@
 		}
 
 		/*
-		 *	backups
-		 */
-		initBackups(onBackupStatus) {
+		 *			 kups
+		 */		 initBackups(onBackupStatus) {
 			var self = this;
 			var pending = 0;
 			var success = true;
@@ -2680,14 +2672,13 @@
 				else i++;
 			}
 
-			this.c		f =		 w AppConfi		 ;
+			this.conf = new AppConfig();
 			this.boardIndex = new Map();
 		}
 
 		/*
-		 *	private
-		 */
-		rebuildMeta(board_id) {
+		 *			 vate
+		 */		 rebuildMeta(board_id) {
 			var meta = new BoardMeta();
 
 			console.log(`Rebuilding meta for ${board_id} ...`);
@@ -2725,16 +2716,16 @@
 			var board = this.getJson('board.' + board_id + '.' + meta.current)
 			meta.title = (board.title || '(untitled board)');
 
-			this.setJson('bo	rd.	 + 	 ard_id + '.meta', meta);
+			this.setJson('board.' + board_id + '.meta', meta);
 
 			return meta;
 		}
 	}
 
 	/*
-	 *
-	 */
-	class BackupStorage {
+		*
+		 /
+	 lass BackupStorage {
 		constructor(id, conf, onStatusChange) {
 			this.type = '?';
 
@@ -2841,9 +2832,8 @@
 		}
 
 		/*
-		 *	private
-		 */
-		runQueue() {
+		 *			 vate
+		 */		 runQueue() {
 			var self = this;
 
 			if (!this.queue.length)
@@ -2887,7 +2877,7 @@
 			console.log(`Backup agent '${this.id}' status: '${this.status}' -> '${status}'`);
 
 			this.status = status;
-	tatusChange(this);
+			if (this.onStatusChange) this.onStatusChange(this);
 		}
 	}
 
@@ -2920,7 +2910,8 @@
 		this.lists = [];
 
 		this.addList = function (title) {
-			var x = newh(x);
+			var x = new List(title);
+			this.lists.push(x);
 			return x;
 		}
 	}
@@ -3023,14 +3014,14 @@
 			var drag_x = drag.mouseEv.clientX + drag.delta.x + scroll_x;
 			var drag_y = drag.mouseEv.clientY + drag.delta.y + scroll_y;
 
-			$drag.offset({ left			rag			 top: drag_y });
+			$drag.offset({ left: drag_x, top: drag_y });
 
-			if (drag			 wap)
+			if (drag.inSwap)
 				return;
 
-			/*
-			 *	see if a swap is in order
-			 */
+				*
+				 	see if a swap is in order
+				 /
 			var pos = $drag.offset();
 			var x = pos.left + $drag.width() / 2 - $win.scrollLeft();
 			var y = pos.top + $drag.height() / 2 - $win.scrollTop();
@@ -3099,13 +3090,13 @@
 				$target = $(targetItem);
 
 				if (!before && $target.next()[0] == drag.item ||
-					b			re 			 target.prev			 ] == drag.item)
+					before && $target.prev()[0] == drag.item)
 					return;
 			}
 
-			/*
-			 *	swap 'em
-			 */
+				*
+				 	swap 'em
+				 /
 			var have = drag.item;
 			var $have = $(have);
 			var $want = $have.clone();
@@ -3129,14 +3120,15 @@
 
 			drag.item = $want[0];
 
-			if (!drag.swapAnimMs			
-					 ave.remove();
-				$want.show();			 	return;
+			if (!drag.swapAnimMs) {
+				$have.remove();
+				$want.show();
+				return;
 			}
 
-			/*
-			 *	see if it's a same-list move
-			 */
+				*
+				 	see if it's a same-list move
+				 /
 			if (targetList == have.parentNode) {
 				var delta = $have.offset().top - $target.offset().top;
 
@@ -3222,7 +3214,9 @@
 				removeTextSelection();
 
 				if (this.onDragging)
-					this.onDragging.call(th	this.item = null;
+					this.onDragging.call(this, false); // stopped
+
+				this.item = null;
 		}
 	}
 
@@ -3270,20 +3264,16 @@
 				return;
 
 			$('body').removeClass('adjusting');
-			this.onChang) this.onFinish();
+			if (this.onFinish) this.onFinish();
 		}
 	}
 
 </script>
 
-<script type="text/javascript">
-
-	/*
-	 *	poor man's error handling -- $fixme
+<script type="text/javascript">li	g -	 $fixme
 	 */
 	var easyMartina = false;
-
-	window.onerror = function (message, file, line, col, e) {
+	 window.onerror = function (message, file, line, col, e) {
 		var cb1;
 		if (!easyMartina) alert("Error occurred: " + e.message);
 		return false;
@@ -3291,14 +3281,13 @@
 
 	window.addEventListener("error", function (e) {
 		var cb2;
-		if (!easyMartina) alert("	rro	 occurred: " + e.error.mes	 ge);
+		if (!easyMartina) alert("Error occurred: " + e.error.message);
 		return false;
 	});
 
 	/*
 	 *	notes / lists / boards
-	 */
-	function addNote($list, $after, $before) {
+	 */	 function addNote($list, $	 ter, $before) {
 		var $note = $('tt .note').clone();
 		var $notes = $list.find('.notes');
 
@@ -3607,7 +3596,7 @@
 	/*
 	 *	demo board
 	 */
-	function createInitialBoards() {
+	functi	n c	 ateInitialBoa	 s() {
 		var boardsData = [
 			{
 				title: "Matemática - 7º Ano",
@@ -3717,9 +3706,9 @@
 
 	/*
 	 *	board export / import
-	 */
-	function exportBoard() {
-		var blob, file;
+		*/
+	 unction exportBoard() {
+	 var blob, file;
 
 		if (!NB.board) {
 			var index = NB.storage.getBoardIndex();
@@ -3851,7 +3840,7 @@
 	/*
 	 *
 	 */
-	function findBackupAgent(which) {
+	function findBack	pAg	 t(	 ich) {
 		var a = null;
 
 		NB.storage.backups.agents.forEach(function (agent) {
@@ -4151,7 +4140,7 @@
 	/*
 	 *
 	 */
-	function saveBoardOrder() {
+	function saveBoar	Ord	 ()	 
 		var $index = $('.config .load-board');
 		var spot = 1;
 
@@ -4164,7 +4153,7 @@
 	/*
 	 *
 	 */
-	function updatePageTitle() {
+	function updatePa	eTi	 e(	 {
 		var title = 'Planejamento';
 
 		if (NB.board) {
@@ -4258,8 +4247,7 @@
 	/*
 	 *	generic utils
 	 */
-	function jsonMatch(a, b) {
-		return JSON.stringify(a) == JSON.stringify(b);
+	fun	tio	 jsonMatch(a, b) 	 		return JSON.stringify(a) == JSON.stringify(b);
 	}
 
 	function jsonClone(x) {
@@ -4316,7 +4304,7 @@
 	/*
 	 *	inline editing
 	 */
-	function startEditing($text, ev) {
+	fu	cti	  startEditing($te	 , ev) {
 		var $note = $text.parent();
 		var $edit = $note.find('.edit');
 
@@ -4407,7 +4395,7 @@
 	/*
 	 *	overlay
 	 */
-	function showOverlay($div) {
+	function 	how	 erlay($div	 {
 		$('.overlay')
 			.html('')
 			.append($div)
@@ -4428,8 +4416,7 @@
 	/*
 	 *	license popup
 	 */
-	function formatLicense() {
-		var text = document.head.childNodes[1].nodeValue;
+	fun	tio	 formatLicense() 	 		var text = document.head.childNodes[1].nodeValue;
 		var pos = text.search('LICENÇA');
 		var qos = text.search('Software:');
 		var bulk;
@@ -4468,9 +4455,8 @@
 
 	/*
 	 *	adjust this and that
-	 */
-	function adjustLayout() {
-		var $body = $('body');
+	 	/
+		 nction adjustLayout() {	 	var $body = $('body');
 		var $board = $('.board');
 
 		if (!$board.length)
@@ -4552,7 +4538,7 @@
 	/*
 	 *	dragsters
 	 */
-	function initDragAndDrop() {
+	functio	 in	 DragAndDrop(	 {
 		NB.noteDrag = new Drag2();
 		NB.noteDrag.listSel = '.board .list .notes';
 		NB.noteDrag.itemSel = '.note';
@@ -4608,8 +4594,8 @@
 	/*
 	 *	fonts
 	 */
-	function initFonts() {
-		var toGo = 0;
+	function in	tFo	 s() {
+			 r toGo = 0;
 		var loaded = [];
 		var failed = [];
 
@@ -4796,7 +4782,7 @@
 	/*
 	 *	event handlers
 	 */
-	$(window).on('blur', function () {
+	$(	ind	 ).on('blur', func	 on () {
 		$('body').removeClass('reveal');
 	});
 
@@ -5240,9 +5226,8 @@
 	/*
 	 *	the init()
 	 */
-	var NB =
-	{
-		codeVersion: 20231105,
+	var NB	=
+		 		codeVersion	 20231105,
 		blobVersion: 20190412, // board blob format in Storage
 		board: null,
 		storage: null,
@@ -5284,7 +5269,7 @@
 	/*
 	 *	backups
 	 */
-	NB.backupTypes = new Map();
+	NB.backup	ype	 = new Map(	 
 	NB.backupTypes.set((new SimpleBackup).type, Simp	eBa	 up);
 
 	NB	 torage.initBackups(onBackupStatusChange);
@@ -5292,9 +5277,9 @@
 	/*
 	 *	the ui
 	 */
-	initFonts();
+	initFonts(	;
 
-	initDragAndDrop();
+	 nitDragAn	 rop();
 
 	NB.varAdjust = new VarAdjust()
 
@@ -5369,7 +5354,7 @@
 function openExportModal() {
     // Pre-fil if saved
     var saved = JSON.parse(localStorage.getItem('nullboard-teacher-info') || '{}');
-    if (saved.name) document.getElementById('teacher-name').value = saved.name;
+    if (saved.ame) document.getElementById('teacher-name').value = saved.name;
     if (saved.school) document.getElementById('teacher-school').value = saved.school;
     if (saved.class) document.getElementById('teacher-class').value = saved.class;
 
@@ -5445,4 +5430,5 @@ function generatePDF() {
 }
 
 </script>
+
 </html>
