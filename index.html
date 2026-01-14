@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Acompanhamento do Planejamento Educacional - Sérgio</title>
+    <title>Planejamento Educacional - Sérgio</title>
     
     <meta name="theme-color" content="#1A5799">
     <meta name="description" content="Quadro Kanban minimalista local-first para planejamento educacional.">
@@ -69,7 +69,7 @@
             background: rgba(0,0,0,0.15);
             backdrop-filter: blur(5px);
             z-index: 20;
-            padding-top: env(safe-area-inset-top); /* Proteção para entalhe iPhone */
+            padding-top: env(safe-area-inset-top);
         }
         
         .board-selector { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 1.1rem; cursor: pointer; }
@@ -296,11 +296,84 @@
     function toggleTheme() { document.body.classList.toggle('dark-mode'); localStorage.setItem('theme', document.body.classList.contains('dark-mode')?'dark':'light'); }
     function exportBackup() { const a=document.createElement('a'); a.href="data:text/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(appData)); a.download=`backup-${Date.now()}.nbx`; a.click(); }
     function importBackup(i) { const r=new FileReader(); r.onload=e=>{appData=JSON.parse(e.target.result);saveData();location.reload();}; r.readAsText(i.files[0]); }
+    
+    // --- FUNÇÃO DE PDF PROFISSIONAL (Atualizada) ---
     function generatePDF() {
-        const n=document.getElementById('pdfName').value, s=document.getElementById('pdfSchool').value, c=document.getElementById('pdfClass').value;
-        const d=document.createElement('div'); d.innerHTML=`<h1>Planejamento</h1><p>${s}<br>Prof: ${n} - ${c}</p><hr>`;
-        currentBoard.lists.forEach(l=>{if(l.cards.length)d.innerHTML+=`<h3>${l.title}</h3><ul>${l.cards.map(x=>`<li>${x}</li>`).join('')}</ul>`});
-        html2pdf().from(d).save(`Planejamento-${c}.pdf`).then(()=>closeModal('pdfModal'));
+        const name = document.getElementById('pdfName').value;
+        const school = document.getElementById('pdfSchool').value;
+        const className = document.getElementById('pdfClass').value || "Sem Turma Definida";
+        const date = new Date().toLocaleDateString('pt-BR');
+
+        // Cria estrutura para impressão A4
+        const content = document.createElement('div');
+        content.style.width = '100%';
+        content.style.maxWidth = '750px'; // Garante o fit A4
+        content.style.margin = '0 auto';
+        content.style.fontFamily = "'Helvetica', 'Arial', sans-serif";
+        content.style.color = '#333';
+        
+        // Cabeçalho
+        content.innerHTML = `
+            <div style="text-align:center; margin-bottom: 20px; border-bottom: 3px solid #1A5799; padding-bottom: 10px;">
+                <h2 style="color:#1A5799; margin:0; text-transform:uppercase;">${school}</h2>
+                <h4 style="margin: 5px 0; color:#555;">Planejamento Educacional</h4>
+            </div>
+            <table style="width:100%; margin-bottom:20px; border-collapse:collapse; font-size:14px;">
+                <tr>
+                    <td style="padding:5px; font-weight:bold; color:#1A5799;">Professor(a):</td>
+                    <td style="padding:5px;">${name}</td>
+                    <td style="padding:5px; font-weight:bold; color:#1A5799;">Data:</td>
+                    <td style="padding:5px;">${date}</td>
+                </tr>
+                <tr>
+                    <td style="padding:5px; font-weight:bold; color:#1A5799;">Quadro/Turma:</td>
+                    <td style="padding:5px;" colspan="3">${className}</td>
+                </tr>
+            </table>
+        `;
+
+        // Conteúdo das Listas
+        let hasContent = false;
+        currentBoard.lists.forEach(list => {
+            if (list.cards.length > 0) {
+                hasContent = true;
+                const listHtml = `
+                    <div style="margin-bottom: 20px; page-break-inside: avoid;">
+                        <div style="background-color: #f0f4f8; border-left: 5px solid #1A5799; padding: 8px 15px; margin-bottom: 10px;">
+                            <h3 style="margin:0; color:#1A5799; font-size:16px;">${list.title}</h3>
+                        </div>
+                        <ul style="list-style: none; padding: 0; margin: 0;">
+                            ${list.cards.map(cardText => `
+                                <li style="border-bottom: 1px dashed #ccc; padding: 10px 0; margin-left: 10px; font-size: 12px; line-height: 1.5;">
+                                    ${cardText.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')}
+                                </li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                `;
+                content.innerHTML += listHtml;
+            }
+        });
+
+        if (!hasContent) {
+            content.innerHTML += '<p style="text-align:center; color:#999;"><i>Nenhum conteúdo registrado para impressão.</i></p>';
+        }
+
+        // Gera PDF
+        const opt = {
+            margin:       [15, 15, 15, 15],
+            filename:     `Planejamento - ${className}.pdf`,
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, useCORS: true, scrollY: 0 },
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        html2pdf().set(opt).from(content).save().then(() => {
+            closeModal('pdfModal');
+        }).catch(err => {
+            console.error(err);
+            alert("Erro ao gerar PDF.");
+        });
     }
 
     if(localStorage.getItem('theme')==='dark') document.body.classList.add('dark-mode');
