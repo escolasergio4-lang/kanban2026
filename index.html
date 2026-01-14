@@ -2061,17 +2061,17 @@
 <script type="text/javascript">
 
 	Number.prototype.clamp = function (min, max) {
-		return Math.min(Mat	.ma	 this, min), max);
+		return Math.min(Math.max(this, min), max);
 	};
 
 	/*
 	 *	ad	 a blank line to push 'Prevent	 his page from opening ...'
-		 	tack-on from the actual mess	 e we are trying to display
+			  tack-on from the actual mess	 e we are trying to display
 	 */
 	var confirm_org = window.confirm;
 	var alert_org = window.alert;
 	window.confirm = function (msg) { return confirm_org(msg + "\n "); }
-	window.aalert_org(msg + "\n "); }
+	window.alert = function (msg) { return alert_org(msg + "\n "); }
 
 </script>
 
@@ -2214,51 +2214,51 @@
 
 		saveBoar			 ard) {
 			/					 			  assign new revision (next unused)
-			 			  trim all in-between revisions 			 ssed by undos if any
+			 			  trim all in -between revisions 			 ssed by undos if any
 			 			  cap history as per config
-			 			 		var meta = this.boardIndex.get(board.id);
-			var ok_data, ok_meta;
+		var meta = this.boardIndex.get(board.id);
+		var ok_data, ok_meta;
 
-			delete board.history; // remove temporarily
+		delete board.history; // remove temporarily
 
-			if (!meta) {
-				board.revision = 1;
+		if (!meta) {
+			board.revision = 1;
 
-				ok_data = this.setJson('board.' + board.id + '.' + board.revision, board);
+			ok_data = this.setJson('board.' + board.id + '.' + board.revision, board);
 
-				meta = new BoardMeta();
-				meta.title = board.title || '(Quadro sem título)';
-				meta.current = board.revision;
-				meta.history = [board.revision];
+			meta = new BoardMeta();
+			meta.title = board.title || '(Quadro sem título)';
+			meta.current = board.revision;
+			meta.history = [board.revision];
 
-				this.boardIndex.set(board.id, meta);
-			}
-			else {
-				var rev_old = board.revision;
-				var rev_new = meta.history[0] + 1;
+			this.boardIndex.set(board.id, meta);
+		}
+		else {
+			var rev_old = board.revision;
+			var rev_new = meta.history[0] + 1;
 
-				board.revision = rev_new;
+			board.revision = rev_new;
 
-				ok_data = this.setJson('board.' + board.id + '.' + board.revision, board);
+			ok_data = this.setJson('board.' + board.id + '.' + board.revision, board);
 
-				meta.title = board.title || '(Quadro sem título)';
-				meta.current = board.revision;
+			meta.title = board.title || '(Quadro sem título)';
+			meta.current = board.revision;
 
-				// trim revisions skipped over with undo and cap the revision count
+			// trim revisions skipped over with undo and cap the revision count
 
-				var rebuild = [board.revision];
+			var rebuild = [board.revision];
 
-				for (var rev of meta.history) {
-					if ((rev_old < rev && rev < rev_new) || (rebuild.length >= this.conf.maxUndo)) {
-						this.delItem('board.' + board.id + '.' + rev);
-						console.log(`Deleted revision ${rev} of ${board.id} (${board.title})`);
-					}
-					else {
-						rebuild.push(rev);
-					}
+			for (var rev of meta.history) {
+				if ((rev_old < rev && rev < rev_new) || (rebuild.length >= this.conf.maxUndo)) {
+					this.delItem('board.' + board.id + '.' + rev);
+					console.log(`Deleted revision ${rev} of ${board.id} (${board.title})`);
 				}
-				meta.history = rebuild;
+				else {
+					rebuild.push(rev);
+				}
 			}
+			meta.history = rebuild;
+		}
 
 			/*				 *			 e meta
 			 *			 	ok_meta = this.setJson('board.' + board.id + '.meta', meta) &&
@@ -2437,7 +2437,8 @@
 					type: simp,
 					id: simp + '-' + (conf.backups.nextId++),
 					enabled: def[1].base && def[1].auth,
-							 f: def[1],		 		})
+					f: def[1],
+				})
 
 				this.saveConfig();
 			}
@@ -2834,51 +2835,51 @@
 		/*
 		 *			 vate
 		 */		 runQueue() {
-			var self = this;
+		var self = this;
 
-			if (!this.queue.length)
-				return;
+		if (!this.queue.length)
+			return;
 
-			if (this.status == 'busy')
-				return;
+		if (this.status == 'busy')
+			return;
 
-			var req = this.queue.shift();
+		var req = this.queue.shift();
 
-			this.setStatus('busy', req.what);
+		this.setStatus('busy', req.what);
 
-			$.ajax(req.args)
-				.done(function (d, s, x) { self.onRequestDone(req, true, x); })
-				.fail(function (x, s, e) { self.onRequestDone(req, false, x); })
+		$.ajax(req.args)
+			.done(function (d, s, x) { self.onRequestDone(req, true, x); })
+			.fail(function (x, s, e) { self.onRequestDone(req, false, x); })
+	}
+
+	onRequestDone(req, ok, xhr) {
+		console.log(`Backup agent '${this.id}', ${this.lastOp}() -> ${ok ? 'ok' : 'failed'}`);
+
+		var code = xhr.status;
+		var text = xhr.responseText || (code ? `Response code ${code}` : 'Offline or CORS-blocked');
+
+		this.lastXhr = { text: text, code: code };
+
+		if (req.cb) req.cb.call(this, ok);
+
+		if (!this.queue.length) {
+			this.setStatus(ok ? 'ready' : 'error', this.lastOp);
+			return;
 		}
 
-		onRequestDone(req, ok, xhr) {
-			console.log(`Backup agent '${this.id}', ${this.lastOp}() -> ${ok ? 'ok' : 'failed'}`);
+		this.status = 'pre-busy';
+		this.runQueue();
+	}
 
-			var code = xhr.status;
-			var text = xhr.responseText || (code ? `Response code ${code}` : 'Offline or CORS-blocked');
+	setStatus(status, op) {
+		if (status == 'busy' && this.status == 'busy')
+			throw `Backup agent ${this.id} is already busy!`;
 
-			this.lastXhr = { text: text, code: code };
+		console.log(`Backup agent '${this.id}' status: '${this.status}' -> '${status}'`);
 
-			if (req.cb) req.cb.call(this, ok);
-
-			if (!this.queue.length) {
-				this.setStatus(ok ? 'ready' : 'error', this.lastOp);
-				return;
-			}
-
-			this.status = 'pre-busy';
-			this.runQueue();
-		}
-
-		setStatus(status, op) {
-			if (status == 'busy' && this.status == 'busy')
-				throw `Backup agent ${this.id} is already busy!`;
-
-			console.log(`Backup agent '${this.id}' status: '${this.status}' -> '${status}'`);
-
-			this.status = status;
-			if (this.onStatusChange) this.onStatusChange(this);
-		}
+		this.status = status;
+		if (this.onStatusChange) this.onStatusChange(this);
+	}
 	}
 
 </script>
@@ -3020,8 +3021,8 @@
 				return;
 
 				*
-				 	see if a swap is in order
-				 /
+				see if a swap is in order
+					/
 			var pos = $drag.offset();
 			var x = pos.left + $drag.width() / 2 - $win.scrollLeft();
 			var y = pos.top + $drag.height() / 2 - $win.scrollTop();
@@ -3095,8 +3096,8 @@
 			}
 
 				*
-				 	swap 'em
-				 /
+				swap 'em
+					/
 			var have = drag.item;
 			var $have = $(have);
 			var $want = $have.clone();
@@ -3127,8 +3128,8 @@
 			}
 
 				*
-				 	see if it's a same-list move
-				 /
+				see if it's a same-list move
+					/
 			if (targetList == have.parentNode) {
 				var delta = $have.offset().top - $target.offset().top;
 
@@ -3217,951 +3218,951 @@
 					this.onDragging.call(this, false); // stopped
 
 				this.item = null;
+			}
 		}
-	}
 
 </script>
 
 <script type="text/javascript">
 
-	function VarAdjust() {
-		// state
-		this.onChange = null;
-		this.onFinish = null;
-		this.startY = 0;
-		this.used = false;
-
-		// api
-		this.start = function (ev, onChange, onFinish) {
-			if (!onChange)
-				return;
-
-			this.onChange = onChange;
-			this.onFinish = onFinish;
-			this.startY = ev.clientY;
+		function VarAdjust() {
+			// state
+			this.onChange = null;
+			this.onFinish = null;
+			this.startY = 0;
 			this.used = false;
 
-			var self = this;
-			setTimeout(function () {
-				if (!self.onChange)
+			// api
+			this.start = function (ev, onChange, onFinish) {
+				if (!onChange)
 					return;
+
+				this.onChange = onChange;
+				this.onFinish = onFinish;
+				this.startY = ev.clientY;
+				this.used = false;
+
+				var self = this;
+				setTimeout(function () {
+					if (!self.onChange)
+						return;
+					$('body').addClass('adjusting');
+					self.used = true;
+				}, 250);
+			}
+
+			this.onMouseMove = function (ev) {
+				if (!this.onChange)
+					return;
+
 				$('body').addClass('adjusting');
 				self.used = true;
-			}, 250);
+				this.onChange(ev.clientY - this.startY);
+			}
+
+			this.end = function () {
+				if (!this.onChange)
+					return;
+
+				$('body').removeClass('adjusting');
+				if (this.onFinish) this.onFinish();
+			}
 		}
-
-		this.onMouseMove = function (ev) {
-			if (!this.onChange)
-				return;
-
-			$('body').addClass('adjusting');
-			self.used = true;
-			this.onChange(ev.clientY - this.startY);
-		}
-
-		this.end = function () {
-			if (!this.onChange)
-				return;
-
-			$('body').removeClass('adjusting');
-			if (this.onFinish) this.onFinish();
-		}
-	}
 
 </script>
 
-<script type="text/javascript">li	g -	 $fixme
-	 */
-	var easyMartina = false;
-	 window.onerror = function (message, file, line, col, e) {
-		var cb1;
-		if (!easyMartina) alert("Error occurred: " + e.message);
-		return false;
-	};
+<script type="text/javascript">li	g - $fixme
+			*/
+		var easyMartina = false;
+		window.onerror = function (message, file, line, col, e) {
+			var cb1;
+			if (!easyMartina) alert("Error occurred: " + e.message);
+			return false;
+		};
 
-	window.addEventListener("error", function (e) {
-		var cb2;
-		if (!easyMartina) alert("Error occurred: " + e.error.message);
-		return false;
-	});
+		window.addEventListener("error", function (e) {
+			var cb2;
+			if (!easyMartina) alert("Error occurred: " + e.error.message);
+			return false;
+		});
 
 	/*
 	 *	notes / lists / boards
 	 */	 function addNote($list, $	 ter, $before) {
-		var $note = $('tt .note').clone();
-		var $notes = $list.find('.notes');
+			var $note = $('tt .note').clone();
+			var $notes = $list.find('.notes');
 
-		$note.find('.text').html('');
-		$note.addClass('brand-new');
+			$note.find('.text').html('');
+			$note.addClass('brand-new');
 
-		if ($before && $before.length) {
-			$before.before($note);
-			$note = $before.prev();
-		}
-		else
-			if ($after && $after.length) {
-				$after.after($note);
-				$note = $after.next();
+			if ($before && $before.length) {
+				$before.before($note);
+				$note = $before.prev();
 			}
-			else {
-				$notes.append($note);
-				$note = $notes.find('.note').last();
-			}
+			else
+				if ($after && $after.length) {
+					$after.after($note);
+					$note = $after.next();
+				}
+				else {
+					$notes.append($note);
+					$note = $notes.find('.note').last();
+				}
 
-		$note.find('.text').click();
-	}
-
-	function deleteNote($note) {
-		$note
-			.animate({ opacity: 0 }, 'fast')
-			.slideUp('fast')
-			.queue(function () {
-				$note.remove();
-				saveBoard();
-			});
-	}
-
-	function noteLocation($item) {
-		var loc = 0;
-		for (var $p = $item.closest('.note'); $p.length; $p = $p.prev(), loc += 1);
-		for (var $p = $item.closest('.list'); $p.length; $p = $p.prev(), loc += 10000);
-		return loc;
-	}
-
-	//
-	function addList() {
-		var $board = $('.wrap .board');
-		var $lists = $board.find('.lists');
-		var $list = $('tt .list').clone();
-
-		$list.find('.text').html('');
-		$list.find('.head').addClass('brand-new');
-
-		$lists.append($list);
-		$board.find('.lists .list .head .text').last().click();
-
-		var lists = $lists[0];
-		lists.scrollLeft = Math.max(0, lists.scrollWidth - lists.clientWidth);
-
-		setupListScrolling();
-	}
-
-	function deleteList($list) {
-		var empty = true;
-
-		$list.find('.note .text').each(function () {
-			empty &= ($(this).html().length == 0);
-		});
-
-		if (!empty && !confirm("Delete this list and all its notes?"))
-			return;
-
-		$list
-			.animate({ opacity: 0 })
-			.queue(function () {
-				$list.remove();
-				saveBoard();
-			});
-
-		setupListScrolling();
-	}
-
-	function moveList($list, left) {
-		var $a = $list;
-		var $b = left ? $a.prev() : $a.next();
-
-		var $menu_a = $a.find('> .head .menu .bulk');
-		var $menu_b = $b.find('> .head .menu .bulk');
-
-		var pos_a = $a.offset().left;
-		var pos_b = $b.offset().left;
-
-		$a.css({ position: 'relative' });
-		$b.css({ position: 'relative' });
-
-		$menu_a.hide();
-		$menu_b.hide();
-
-		$a.animate({ left: (pos_b - pos_a) + 'px' }, 'fast');
-		$b.animate({ left: (pos_a - pos_b) + 'px' }, 'fast', function () {
-
-			if (left) $list.prev().before($list);
-			else $list.before($list.next());
-
-			$a.css({ position: '', left: '' });
-			$b.css({ position: '', left: '' });
-
-			$menu_a.css({ display: '' });
-			$menu_b.css({ display: '' });
-
-			saveBoard();
-		});
-	}
-
-	//
-	function openBoard(board_id) {
-		closeBoard(true);
-
-		NB.board = NB.storage.loadBoard(board_id, null);
-		NB.storage.setActiveBoard(board_id);
-
-		showBoard(true);
-	}
-
-	function reopenBoard(revision) {
-		var board_id = NB.board.id;
-
-		var via_menu = $('.wrap .board > .head .menu .bulk').is(':visible');
-
-		NB.storage.setBoardRevision(board_id, revision);
-
-		openBoard(board_id);
-
-		if (via_menu) {
-			var $menu = $('.wrap .board > .head .menu');
-			var $teaser = $menu.find('.teaser');
-			var $bulk = $menu.find('.bulk');
-
-			$teaser.hide().delay(100).queue(function () { $(this).css('display', '').dequeue(); });
-			$bulk.show().delay(100).queue(function () { $(this).css('display', '').dequeue(); });
+			$note.find('.text').click();
 		}
-	}
 
-	function closeBoard(quick) {
-		if (!NB.board)
-			return;
-
-		var $board = $('.wrap .board');
-
-		if (quick)
-			$board.remove();
-		else
-			$board
+		function deleteNote($note) {
+			$note
 				.animate({ opacity: 0 }, 'fast')
-				.queue(function () { $board.remove(); });
-
-		NB.board = null;
-		NB.storage.setActiveBoard(null);
-
-		//		updateUndoRedo();
-		updateBoardIndex();
-		updatePageTitle();
-	}
-
-	//
-	function addBoard() {
-		closeBoard(true);
-
-		NB.board = new Board();
-
-		showBoard(true);
-
-		$('.wrap .board .head').addClass('brand-new');
-		$('.wrap .board .head .text').click();
-	}
-
-	function saveBoard() {
-		var $board = $('.wrap .board');
-		var board = Object.assign(new Board(), NB.board); // id, revision & title
-
-		board.lists = [];
-
-		$board.find('.list').each(function () {
-			var $list = $(this);
-			var l = board.addList(getText($list.find('.head .text')));
-
-			$list.find('.note').each(function () {
-				var $note = $(this)
-				var n = l.addNote(getText($note.find('.text')));
-				n.raw = $note.hasClass('raw');
-				n.min = $note.hasClass('collapsed');
-			});
-		});
-
-		NB.storage.saveBoard(board);
-		NB.board = board;
-
-		updateUndoRedo();
-		updateBoardIndex();
-	}
-
-	function deleteBoard() {
-		var $list = $('.wrap .board .list');
-		var board_id = NB.board.id;
-
-		if ($list.length && !confirm("PERMANENTLY delete this board, all its lists and their notes?"))
-			return;
-
-		closeBoard();
-
-		NB.storage.nukeBoard(board_id);
-
-		updateBoardIndex();
-	}
-
-	//
-	function undoBoard() {
-		if (!NB.board)
-			return false;
-
-		var hist = NB.storage.getBoardHistory(NB.board.id);
-		var have = NB.board.revision;
-		var want = 0;
-
-		for (var i = 0; i < hist.length - 1 && !want; i++)
-			if (have == hist[i])
-				want = hist[i + 1];
-
-		if (!want) {
-			console.log('Undo - failed');
-			return false;
+				.slideUp('fast')
+				.queue(function () {
+					$note.remove();
+					saveBoard();
+				});
 		}
 
-		console.log('Undo -> ' + want);
-
-		reopenBoard(want);
-		return true;
-	}
-
-	function redoBoard() {
-		if (!NB.board)
-			return false;
-
-		var hist = NB.storage.getBoardHistory(NB.board.id);
-		var have = NB.board.revision;
-		var want = 0;
-
-		for (var i = 1; i < hist.length && !want; i++)
-			if (have == hist[i])
-				want = hist[i - 1];
-
-		if (!want) {
-			console.log('Redo - failed');
-			return false;
+		function noteLocation($item) {
+			var loc = 0;
+			for (var $p = $item.closest('.note'); $p.length; $p = $p.prev(), loc += 1);
+			for (var $p = $item.closest('.list'); $p.length; $p = $p.prev(), loc += 10000);
+			return loc;
 		}
 
-		console.log('Redo -> ' + want);
+		//
+		function addList() {
+			var $board = $('.wrap .board');
+			var $lists = $board.find('.lists');
+			var $list = $('tt .list').clone();
 
-		reopenBoard(want);
-		return true;
-	}
+			$list.find('.text').html('');
+			$list.find('.head').addClass('brand-new');
 
-	//
-	function showBoard(quick) {
-		var board = NB.board;
+			$lists.append($list);
+			$board.find('.lists .list .head .text').last().click();
 
-		var $wrap = $('.wrap');
-		var $bdiv = $('tt .board');
-		var $ldiv = $('tt .list');
-		var $ndiv = $('tt .note');
+			var lists = $lists[0];
+			lists.scrollLeft = Math.max(0, lists.scrollWidth - lists.clientWidth);
 
-		var $b = $bdiv.clone();
-		var $b_lists = $b.find('.lists');
+			setupListScrolling();
+		}
 
-		$b[0].board_id = board.id;
-		setText($b.find('.head .text'), board.title);
+		function deleteList($list) {
+			var empty = true;
 
-		board.lists.forEach(function (list) {
-
-			var $l = $ldiv.clone();
-			var $l_notes = $l.find('.notes');
-
-			setText($l.find('.head .text'), list.title);
-
-			list.notes.forEach(function (n) {
-				var $n = $ndiv.clone();
-				setText($n.find('.text'), n.text);
-				if (n.raw) $n.addClass('raw');
-				if (n.min) $n.addClass('collapsed');
-				$l_notes.append($n);
+			$list.find('.note .text').each(function () {
+				empty &= ($(this).html().length == 0);
 			});
 
-			$b_lists.append($l);
-		});
+			if (!empty && !confirm("Delete this list and all its notes?"))
+				return;
 
-		if (quick)
-			$wrap.html('').append($b);
-		else
-			$wrap.html('')
-				.css({ opacity: 0 })
-				.append($b)
-				.animate({ opacity: 1 });
+			$list
+				.animate({ opacity: 0 })
+				.queue(function () {
+					$list.remove();
+					saveBoard();
+				});
 
-		updatePageTitle();
-		updateUn	oRe	 ();
+			setupListScrolling();
+		}
+
+		function moveList($list, left) {
+			var $a = $list;
+			var $b = left ? $a.prev() : $a.next();
+
+			var $menu_a = $a.find('> .head .menu .bulk');
+			var $menu_b = $b.find('> .head .menu .bulk');
+
+			var pos_a = $a.offset().left;
+			var pos_b = $b.offset().left;
+
+			$a.css({ position: 'relative' });
+			$b.css({ position: 'relative' });
+
+			$menu_a.hide();
+			$menu_b.hide();
+
+			$a.animate({ left: (pos_b - pos_a) + 'px' }, 'fast');
+			$b.animate({ left: (pos_a - pos_b) + 'px' }, 'fast', function () {
+
+				if (left) $list.prev().before($list);
+				else $list.before($list.next());
+
+				$a.css({ position: '', left: '' });
+				$b.css({ position: '', left: '' });
+
+				$menu_a.css({ display: '' });
+				$menu_b.css({ display: '' });
+
+				saveBoard();
+			});
+		}
+
+		//
+		function openBoard(board_id) {
+			closeBoard(true);
+
+			NB.board = NB.storage.loadBoard(board_id, null);
+			NB.storage.setActiveBoard(board_id);
+
+			showBoard(true);
+		}
+
+		function reopenBoard(revision) {
+			var board_id = NB.board.id;
+
+			var via_menu = $('.wrap .board > .head .menu .bulk').is(':visible');
+
+			NB.storage.setBoardRevision(board_id, revision);
+
+			openBoard(board_id);
+
+			if (via_menu) {
+				var $menu = $('.wrap .board > .head .menu');
+				var $teaser = $menu.find('.teaser');
+				var $bulk = $menu.find('.bulk');
+
+				$teaser.hide().delay(100).queue(function () { $(this).css('display', '').dequeue(); });
+				$bulk.show().delay(100).queue(function () { $(this).css('display', '').dequeue(); });
+			}
+		}
+
+		function closeBoard(quick) {
+			if (!NB.board)
+				return;
+
+			var $board = $('.wrap .board');
+
+			if (quick)
+				$board.remove();
+			else
+				$board
+					.animate({ opacity: 0 }, 'fast')
+					.queue(function () { $board.remove(); });
+
+			NB.board = null;
+			NB.storage.setActiveBoard(null);
+
+			//		updateUndoRedo();
+			updateBoardIndex();
+			updatePageTitle();
+		}
+
+		//
+		function addBoard() {
+			closeBoard(true);
+
+			NB.board = new Board();
+
+			showBoard(true);
+
+			$('.wrap .board .head').addClass('brand-new');
+			$('.wrap .board .head .text').click();
+		}
+
+		function saveBoard() {
+			var $board = $('.wrap .board');
+			var board = Object.assign(new Board(), NB.board); // id, revision & title
+
+			board.lists = [];
+
+			$board.find('.list').each(function () {
+				var $list = $(this);
+				var l = board.addList(getText($list.find('.head .text')));
+
+				$list.find('.note').each(function () {
+					var $note = $(this)
+					var n = l.addNote(getText($note.find('.text')));
+					n.raw = $note.hasClass('raw');
+					n.min = $note.hasClass('collapsed');
+				});
+			});
+
+			NB.storage.saveBoard(board);
+			NB.board = board;
+
+			updateUndoRedo();
+			updateBoardIndex();
+		}
+
+		function deleteBoard() {
+			var $list = $('.wrap .board .list');
+			var board_id = NB.board.id;
+
+			if ($list.length && !confirm("PERMANENTLY delete this board, all its lists and their notes?"))
+				return;
+
+			closeBoard();
+
+			NB.storage.nukeBoard(board_id);
+
+			updateBoardIndex();
+		}
+
+		//
+		function undoBoard() {
+			if (!NB.board)
+				return false;
+
+			var hist = NB.storage.getBoardHistory(NB.board.id);
+			var have = NB.board.revision;
+			var want = 0;
+
+			for (var i = 0; i < hist.length - 1 && !want; i++)
+				if (have == hist[i])
+					want = hist[i + 1];
+
+			if (!want) {
+				console.log('Undo - failed');
+				return false;
+			}
+
+			console.log('Undo -> ' + want);
+
+			reopenBoard(want);
+			return true;
+		}
+
+		function redoBoard() {
+			if (!NB.board)
+				return false;
+
+			var hist = NB.storage.getBoardHistory(NB.board.id);
+			var have = NB.board.revision;
+			var want = 0;
+
+			for (var i = 1; i < hist.length && !want; i++)
+				if (have == hist[i])
+					want = hist[i - 1];
+
+			if (!want) {
+				console.log('Redo - failed');
+				return false;
+			}
+
+			console.log('Redo -> ' + want);
+
+			reopenBoard(want);
+			return true;
+		}
+
+		//
+		function showBoard(quick) {
+			var board = NB.board;
+
+			var $wrap = $('.wrap');
+			var $bdiv = $('tt .board');
+			var $ldiv = $('tt .list');
+			var $ndiv = $('tt .note');
+
+			var $b = $bdiv.clone();
+			var $b_lists = $b.find('.lists');
+
+			$b[0].board_id = board.id;
+			setText($b.find('.head .text'), board.title);
+
+			board.lists.forEach(function (list) {
+
+				var $l = $ldiv.clone();
+				var $l_notes = $l.find('.notes');
+
+				setText($l.find('.head .text'), list.title);
+
+				list.notes.forEach(function (n) {
+					var $n = $ndiv.clone();
+					setText($n.find('.text'), n.text);
+					if (n.raw) $n.addClass('raw');
+					if (n.min) $n.addClass('collapsed');
+					$l_notes.append($n);
+				});
+
+				$b_lists.append($l);
+			});
+
+			if (quick)
+				$wrap.html('').append($b);
+			else
+				$wrap.html('')
+					.css({ opacity: 0 })
+					.append($b)
+					.animate({ opacity: 1 });
+
+			updatePageTitle();
+		updateUn	oRe();
 		updateB	 rdIndex();
-		setupListScrolling();
-	}
+			setupListScrolling();
+		}
 
 	/*
 	 *	demo board
 	 */
 	functi	n c	 ateInitialBoa	 s() {
-		var boardsData = [
-			{
-				title: "Matemática - 7º Ano",
-				lists: [
-					{
-						title: "1ª Unidade", notes: [
-							{ text: "**Atividade:** Introdução aos Números Racionais\\n**Objetivo:** Compreender a necessidade dos números racionais.\\n**Metodologia:** Aula expositiva dialogada e uso de reta numérica.\\n**Avaliação:** Participação na atividade de 'verdadeiro ou falso' com frações.\\n**Status:** Pendente" },
-							{ text: "**Atividade:** Operações com Frações\\n**Objetivo:** Resolver problemas envolvendo adição e subtração.\\n**Material:** Dominó de frações.\\n**Status:** Em planejamento" },
-							{ text: "**Atividade:** Números Decimais e Porcentagem\\n**Objetivo:** Relacionar frações, decimais e porcentagens.\\n**Recurso:** Vídeo 'O mundo das porcentagens'.\\n**Status:** Em planejamento" }
-						]
-					},
-					{ title: "2ª Unidade", notes: [] },
-					{ title: "3ª Unidade", notes: [] },
-					{ title: "Em Andamento", notes: [] },
-					{ title: "Concluído", notes: [] },
-					{ title: "Ideias Futuras", notes: [{ text: "Projeto Feira de Matemática: Jogos de Tabuleiro" }] }
-				]
-			},
-			{
-				title: "Recursos Didáticos",
-				lists: [
-					{ title: "Vídeos e Documentários", notes: [{ text: "Documentário: A História do Número 1 (BBC)" }, { text: "Canal: Matemática Rio (YouTube)" }] },
-					{ title: "Livros e Artigos", notes: [{ text: "Livro: O Diabo dos Números - Hans Magnus Enzensberger" }] },
-					{ title: "Atividades Práticas", notes: [{ text: "Oficina de Geometria com Origamis" }] },
-					{ title: "Jogos Educativos", notes: [{ text: "Kahoot: Quiz de Revisão Algébrica" }, { text: "Jogo: Matix (Operações)" }] },
-					{ title: "Material Digital", notes: [{ text: "Geogebra - Simulador de Funções" }] },
-					{ title: "Material Físico", notes: [{ text: "Kit de Sólidos Geométricos (Acrílico)" }] }
-				]
-			},
-			{
-				title: "Planejamento Anual",
-				lists: [
-					{ title: "Objetivos de Aprendizagem", notes: [{ text: "Desenvolver o pensamento lógico-dedutivo." }, { text: "Aplicar conhecimentos matemáticos no cotidiano." }] },
-					{ title: "Competências BNCC", notes: [{ text: "(EF07MA01) Resolver e elaborar problemas com números inteiros." }, { text: "(EF07MA02) Resolver e elaborar problemas com números racionais." }] },
-					{ title: "Projetos Interdisciplinares", notes: [{ text: "Projeto 'Matemática e Arte' com a disciplina de Artes (Geometria e Perspectiva)." }] },
-					{ title: "Avaliações", notes: [{ text: "Prova Bimestral 1" }, { text: "Trabalho em Grupo: Estatística da Turma" }, { text: "Autoavaliação Semestral" }] }
-				]
-			}
-		];
+			var boardsData = [
+				{
+					title: "Matemática - 7º Ano",
+					lists: [
+						{
+							title: "1ª Unidade", notes: [
+								{ text: "**Atividade:** Introdução aos Números Racionais\\n**Objetivo:** Compreender a necessidade dos números racionais.\\n**Metodologia:** Aula expositiva dialogada e uso de reta numérica.\\n**Avaliação:** Participação na atividade de 'verdadeiro ou falso' com frações.\\n**Status:** Pendente" },
+								{ text: "**Atividade:** Operações com Frações\\n**Objetivo:** Resolver problemas envolvendo adição e subtração.\\n**Material:** Dominó de frações.\\n**Status:** Em planejamento" },
+								{ text: "**Atividade:** Números Decimais e Porcentagem\\n**Objetivo:** Relacionar frações, decimais e porcentagens.\\n**Recurso:** Vídeo 'O mundo das porcentagens'.\\n**Status:** Em planejamento" }
+							]
+						},
+						{ title: "2ª Unidade", notes: [] },
+						{ title: "3ª Unidade", notes: [] },
+						{ title: "Em Andamento", notes: [] },
+						{ title: "Concluído", notes: [] },
+						{ title: "Ideias Futuras", notes: [{ text: "Projeto Feira de Matemática: Jogos de Tabuleiro" }] }
+					]
+				},
+				{
+					title: "Recursos Didáticos",
+					lists: [
+						{ title: "Vídeos e Documentários", notes: [{ text: "Documentário: A História do Número 1 (BBC)" }, { text: "Canal: Matemática Rio (YouTube)" }] },
+						{ title: "Livros e Artigos", notes: [{ text: "Livro: O Diabo dos Números - Hans Magnus Enzensberger" }] },
+						{ title: "Atividades Práticas", notes: [{ text: "Oficina de Geometria com Origamis" }] },
+						{ title: "Jogos Educativos", notes: [{ text: "Kahoot: Quiz de Revisão Algébrica" }, { text: "Jogo: Matix (Operações)" }] },
+						{ title: "Material Digital", notes: [{ text: "Geogebra - Simulador de Funções" }] },
+						{ title: "Material Físico", notes: [{ text: "Kit de Sólidos Geométricos (Acrílico)" }] }
+					]
+				},
+				{
+					title: "Planejamento Anual",
+					lists: [
+						{ title: "Objetivos de Aprendizagem", notes: [{ text: "Desenvolver o pensamento lógico-dedutivo." }, { text: "Aplicar conhecimentos matemáticos no cotidiano." }] },
+						{ title: "Competências BNCC", notes: [{ text: "(EF07MA01) Resolver e elaborar problemas com números inteiros." }, { text: "(EF07MA02) Resolver e elaborar problemas com números racionais." }] },
+						{ title: "Projetos Interdisciplinares", notes: [{ text: "Projeto 'Matemática e Arte' com a disciplina de Artes (Geometria e Perspectiva)." }] },
+						{ title: "Avaliações", notes: [{ text: "Prova Bimestral 1" }, { text: "Trabalho em Grupo: Estatística da Turma" }, { text: "Autoavaliação Semestral" }] }
+					]
+				}
+			];
 
-		var firstBoardId = null;
-		var now = +new Date();
+			var firstBoardId = null;
+			var now = +new Date();
 
-		boardsData.forEach(function (bData, idx) {
-			var board = { format: 20190412, id: now + idx, revision: 1, title: bData.title, lists: [] };
-			bData.lists.forEach(function (lData) {
-				var notes = lData.notes.map(function (n) {
-					return { text: n.text, raw: false, min: false };
+			boardsData.forEach(function (bData, idx) {
+				var board = { format: 20190412, id: now + idx, revision: 1, title: bData.title, lists: [] };
+				bData.lists.forEach(function (lData) {
+					var notes = lData.notes.map(function (n) {
+						return { text: n.text, raw: false, min: false };
+					});
+					board.lists.push({ title: lData.title, notes: notes });
 				});
-				board.lists.push({ title: lData.title, notes: notes });
+
+				NB.storage.saveBoard(board);
+				if (idx === 0) firstBoardId = board.id;
 			});
 
-			NB.storage.saveBoard(board);
-			if (idx === 0) firstBoardId = board.id;
-		});
+			NB.storage.setActiveBoard(firstBoardId);
+			var firstBoard = NB.storage.loadBoard(firstBoardId);
+			return Object.assign(new Board(), firstBoard);
+		}
 
-		NB.storage.setActiveBoard(firstBoardId);
-		var firstBoard = NB.storage.loadBoard(firstBoardId);
-		return Object.assign(new Board(), firstBoard);
-	}
+		function createDemoBoard() {
+			var blob =
+				'{"format":20190412,"id":1555071015420,"revision":581,"title":"Welcome to Nullboard","lists":[{"title":"The Use' +
+				'r Manual","notes":[{"text":"This is a note.\\nA column of notes is a list.\\nA set of lists is a board.","raw"' +
+				':false,"min":false},{"text":"All data is saved locally.\\nThe whole thing works completely offline.","raw":fal' +
+				'se,"min":false},{"text":"Last 50 board revisions are retained.","raw":false,"min":false},{"text":"Ctrl-Z is Un' +
+				'do  -  goes one revision back.\\nCtrl-Y is Redo  -  goes one revision forward.","raw":false,"min":false},{"tex' +
+				't":"Caveats","raw":true,"min":false},{"text":"Desktop-oriented.\\nMobile support is basically untested.","raw"' +
+				':false,"min":false},{"text":"Works in Firefox, Chrome is supported.\\nShould work in Safari, may work in Edge.' +
+				'","raw":false,"min":false},{"text":"Still very much in beta. Caveat emptor.","raw":false,"min":false},{"text":' +
+				'"Issues and suggestions","raw":true,"min":false},{"text":"Post them on Github.\\nSee \\"Nullboard\\" at the to' +
+				'p left for the link.","raw":false,"min":false}]},{"title":"Things to try","notes":[{"text":"\u2022   Click on ' +
+				'a note to edit.","raw":false,"min":false},{"text":"\u2022   Click outside of it when done editing.\\n\u2022   ' +
+				'Alternatively, use Shift-Enter.","raw":false,"min":false},{"text":"\u2022   To discard changes press Escape.",' +
+				'"raw":false,"min":false},{"text":"\u2022   Try Ctrl-Enter, see what it does.\\n\u2022   Try Ctrl-Shift-Enter t' +
+				'oo.","raw":false,"min":false},{"text":"\u2022   Hover over a note to show its  \u2261  menu.\\n\u2022   Hover ' +
+				'over  \u2261  to reveal the options.","raw":false,"min":false},{"text":"\u2022   X  deletes the note.\\n\u2022' +
+				'   R changes how a note looks.\\n\u2022   _  collapses the note.","raw":false,"min":false},{"text":"This is a ' +
+				'raw note.","raw":true,"min":false},{"text":"This is a collapsed note. Only its first line is visible. Useful f' +
+				'or keeping lists compact.","raw":false,"min":true}, {"text":"Links","raw":true,"min":false}, {"text":"Links pu' +
+				'lse on hover and can be opened via the right-click menu  -  https://nullboard.io","raw":false,"min":false}, {"tex' +
+				't":"Pressing CapsLock or Control highlights all links and makes them left-clickable.","raw":false,"min":false}]},{"title"' +
+				':"More things to try","notes":[{"text":"\u2022   Drag notes around to rearrange.\\n\u2022   Works between the ' +
+				'lists too.","raw":false,"min":false},{"text":"\u2022   Click on a list name to edit.\\n\u2022   Enter to save,' +
+				' Esc to cancel.","raw":false,"min":false},{"text":"\u2022   Try adding a new list.\\n\u2022   Try deleting one' +
+				'. This  _can_  be undone.","raw":false,"min":false},{"text":"\u2022   Same for the board name.","raw":false,"m' +
+				'in":false},{"text":"Boards","raw":true,"min":false},{"text":"\u2022   Check out   \u2261   at the top right.",' +
+				'"raw":false,"min":false},{"text":"\u2022   Try adding a new board.\\n\u2022   Try switching between the boards' +
+				'.","raw":false,"min":false},{"text":"\u2022   Try deleting a board. Unlike deleting a\\n     list this  _canno' +
+				't_  be undone.","raw":false,"min":false},{"text":"\u2022   Export the board   (save to a file, as json)\\n' +
+				'\u2022   Import the board   (load from a save)","raw":false,"min":false}]}]}';
 
-	function createDemoBoard() {
-		var blob =
-			'{"format":20190412,"id":1555071015420,"revision":581,"title":"Welcome to Nullboard","lists":[{"title":"The Use' +
-			'r Manual","notes":[{"text":"This is a note.\\nA column of notes is a list.\\nA set of lists is a board.","raw"' +
-			':false,"min":false},{"text":"All data is saved locally.\\nThe whole thing works completely offline.","raw":fal' +
-			'se,"min":false},{"text":"Last 50 board revisions are retained.","raw":false,"min":false},{"text":"Ctrl-Z is Un' +
-			'do  -  goes one revision back.\\nCtrl-Y is Redo  -  goes one revision forward.","raw":false,"min":false},{"tex' +
-			't":"Caveats","raw":true,"min":false},{"text":"Desktop-oriented.\\nMobile support is basically untested.","raw"' +
-			':false,"min":false},{"text":"Works in Firefox, Chrome is supported.\\nShould work in Safari, may work in Edge.' +
-			'","raw":false,"min":false},{"text":"Still very much in beta. Caveat emptor.","raw":false,"min":false},{"text":' +
-			'"Issues and suggestions","raw":true,"min":false},{"text":"Post them on Github.\\nSee \\"Nullboard\\" at the to' +
-			'p left for the link.","raw":false,"min":false}]},{"title":"Things to try","notes":[{"text":"\u2022   Click on ' +
-			'a note to edit.","raw":false,"min":false},{"text":"\u2022   Click outside of it when done editing.\\n\u2022   ' +
-			'Alternatively, use Shift-Enter.","raw":false,"min":false},{"text":"\u2022   To discard changes press Escape.",' +
-			'"raw":false,"min":false},{"text":"\u2022   Try Ctrl-Enter, see what it does.\\n\u2022   Try Ctrl-Shift-Enter t' +
-			'oo.","raw":false,"min":false},{"text":"\u2022   Hover over a note to show its  \u2261  menu.\\n\u2022   Hover ' +
-			'over  \u2261  to reveal the options.","raw":false,"min":false},{"text":"\u2022   X  deletes the note.\\n\u2022' +
-			'   R changes how a note looks.\\n\u2022   _  collapses the note.","raw":false,"min":false},{"text":"This is a ' +
-			'raw note.","raw":true,"min":false},{"text":"This is a collapsed note. Only its first line is visible. Useful f' +
-			'or keeping lists compact.","raw":false,"min":true}, {"text":"Links","raw":true,"min":false}, {"text":"Links pu' +
-			'lse on hover and can be opened via the right-click menu  -  https://nullboard.io","raw":false,"min":false}, {"tex' +
-			't":"Pressing CapsLock or Control highlights all links and makes them left-clickable.","raw":false,"min":false}]},{"title"' +
-			':"More things to try","notes":[{"text":"\u2022   Drag notes around to rearrange.\\n\u2022   Works between the ' +
-			'lists too.","raw":false,"min":false},{"text":"\u2022   Click on a list name to edit.\\n\u2022   Enter to save,' +
-			' Esc to cancel.","raw":false,"min":false},{"text":"\u2022   Try adding a new list.\\n\u2022   Try deleting one' +
-			'. This  _can_  be undone.","raw":false,"min":false},{"text":"\u2022   Same for the board name.","raw":false,"m' +
-			'in":false},{"text":"Boards","raw":true,"min":false},{"text":"\u2022   Check out   \u2261   at the top right.",' +
-			'"raw":false,"min":false},{"text":"\u2022   Try adding a new board.\\n\u2022   Try switching between the boards' +
-			'.","raw":false,"min":false},{"text":"\u2022   Try deleting a board. Unlike deleting a\\n     list this  _canno' +
-			't_  be undone.","raw":false,"min":false},{"text":"\u2022   Export the board   (save to a file, as json)\\n' +
-			'\u2022   Import the board   (load from a save)","raw":false,"min":false}]}]}';
+			var demo = JSON.parse(blob);
 
-		var demo = JSON.parse(blob);
+			if (!demo)
+				return false;
 
-		if (!demo)
-			return false;
+			demo.id = +new Date();
+			demo.revision = 0;
 
-		demo.id = +new Date();
-		demo.revision = 0;
+			NB.storage.saveBoard(demo);
+			NB.storage.setActiveBoar(de.id);
 
-		NB.storage.saveBoard(demo);
-		NB.storage.setActiveBoar	(de	 .id);
-
-		return Object.a	 ign(new Board(), demo);
-	}
+			return Object.a	 ign(new Board(), demo);
+		}
 
 	/*
 	 *	board export / import
 		*/
 	 unction exportBoard() {
-	 var blob, file;
+			var blob, file;
 
-		if (!NB.board) {
-			var index = NB.storage.getBoardIndex();
-			var all = [];
+			if (!NB.board) {
+				var index = NB.storage.getBoardIndex();
+				var all = [];
 
-			boards.forEach(function (meta, board_id) {
-				all.push(NB.storage.loadBoard(board_id, null));
-			})
+				boards.forEach(function (meta, board_id) {
+					all.push(NB.storage.loadBoard(board_id, null));
+				})
 
-			blob = JSON.stringify(all);
-			file = `Planejamento.nbx`;
-		}
-		else {
-			var board = NB.board;
-			blob = JSON.stringify(board);
-			file = `Planejamento-${board.id}-${board.title}.nbx`;
-		}
-
-		blob = encodeURIComponent(blob);
-		blob = "data:application/octet-stream," + blob;
-
-		return { blob: blob, file: file };
-	}
-
-	function checkImport(foo) {
-		var props = ['format', 'id', 'revision', 'title', 'lists'];
-
-		for (var i = 0; i < props.length; i++)
-			if (!foo.hasOwnProperty(props[i]))
-				return "Propriedades obrigatórias do quadro ausentes.";
-
-		if (!foo.id || !foo.revision || !Array.isArray(foo.lists))
-			return "Propriedades obrigatórias do quadro estão vazias.";
-
-		if (foo.format != NB.blobVersion)
-			return `Formato de blob não suportado "${foo.format}", esperando "${NB.blobVersion}".`;
-
-		return null;
-	}
-
-	function importBoard(blob) {
-		var data;
-
-		try {
-			data = JSON.parse(blob);
-		}
-		catch (x) {
-			alert('Arquivo não é um formato JSON válido.');
-			return false;
-		}
-
-		if (!Array.isArray(data))
-			data = [data];
-
-		var index = NB.storage.getBoardIndex();
-		var msg, one, all = '';
-
-		for (var i = 0; i < data.length; i++) {
-			var board = data[i];
-
-			var whoops = checkImport(board);
-			if (whoops) {
-				alert(whoops);
-				return false;
-			}
-
-			var title = board.title || '(quadro sem título)';
-			one = `"${title}", ID ${board.id}, revisão ${board.revision}`;
-			all += `    ID ${board.id}, revisão ${board.revision} - "${title}"    \n`;
-		}
-
-		if (data.length == 1) msg = `Importar um quadro chamado ${one} ?`;
-		else msg = `Prestes a importar os seguintes quadros:\n\n${all}\nProsseguir?`;
-
-		if (!confirm(msg))
-			return false;
-
-		var to_open = '';
-
-		for (var i = 0; i < data.length; i++) {
-			var board = data[i];
-			var check_title = true;
-
-			// check ID
-
-			if (index.has(board.id)) {
-				var which = (data.length == 1) ? "com o mesmo ID" : board.id;
-
-				if (confirm(`Quadro ${which} já existe. Sobrescrever?`) &&
-					confirm(`SOBRESCREVER com certeza?`)) {
-					console.log(`Import: ${board.id} (${board.title} - will overwrite existing one`);
-					check_title = false;
-				}
-				else
-					if (confirm(`Importar o quadro com um novo ID?`)) {
-						var new_id = +new Date();
-						console.log(`Import: ${board.id} (${board.title} - will import as ${new_id}`);
-						board.id = new_id;
-					}
-					else {
-						console.log(`Import: ${board.id} (${board.title} - ID conflict, will not import`);
-						continue;
-					}
-			}
-
-			if (check_title) {
-				var retitle = false;
-				index.forEach(have => { retitle |= (have.title == board.title) });
-
-				if (retitle) board.title += ' (importado)';
-			}
-
-			// ok, do the deed
-
-			board.revision--; // save will ++ it back
-
-			if (!NB.storage.saveBoard(board)) // this updates 'index'
-			{
-				alert(`Falha ao salvar quadro ${board.id}. Importação falhou.`);
-				return false;
-			}
-
-			if (!to_open) to_ope	 = 	 ta	 ].id;
-		}
-
-		if (to_open) openBoard(to_open);
-	}
-
-	/*
-	 *
-	 */
-	function findBack	pAg	 t(	 ich) {
-		var a = null;
-
-		NB.storage.backups.agents.forEach(function (agent) {
-			if (agent.type == which.type &&
-				agent.conf.auth == which.conf.auth &&
-				agent.conf.base == which.conf.base) {
-				a = agent;
-			}
-		});
-
-		return a;
-	}
-
-	function setBackupConfigUi($div, backupConf) {
-		if (!backupConf.enabled) {
-			$div.addClass('off');
-			return;
-		}
-
-		var $status = $div.find('.status');
-		var b = findBackupAgent(backupConf);
-		var text = 'OK';
-
-		if (b && b.status == 'error') {
-			text = b.lastXhr.text;
-			$status.addClass('error');
-		}
-
-		$status.find('input').val(text);
-		$status.css({ display: 'block' });
-	}
-
-	function getBackupConfigUi() {
-		var conf = NB.storage.getConfig();
-		var loc = conf.backups.agents[0];
-		var rem = conf.backups.agents[1];
-
-		var $div = $('.overlay .backup-conf');
-		var $loc = $div.find('.loc');
-		var $rem = $div.find('.rem');
-
-		var ret =
-		{
-			loc: jsonClone(loc),
-			rem: jsonClone(rem)
-		};
-
-		ret.loc.enabled = !$loc.hasClass('off');
-		ret.loc.conf.auth = $loc.find('.auth').val();
-
-		ret.rem.enabled = !$rem.hasClass('off');
-		ret.rem.conf.base = $rem.find('.base').val();
-		ret.rem.conf.auth = $rem.find('.auth').val();
-
-		//
-		if (ret.loc.enabled && !ret.loc.conf.auth) {
-			shakeControl($loc.find('.auth'));
-			return null;
-		}
-
-		if (ret.rem.enabled && !ret.rem.conf.base) {
-			shakeControl($rem.find('.base'));
-			return null;
-		}
-
-		if (ret.rem.enabled && !ret.rem.conf.auth) {
-			shakeControl($rem.find('.auth'));
-			return null;
-		}
-
-		return ret;
-	}
-
-	function checkBackupConfig(backupConf, $div, onDone) {
-		var $status = $div.find('.status');
-		var $text = $status.find('input');
-
-		$text.val('Verificando...');
-		$status.removeClass('error').slideDown();
-
-		$div.delay(850).queue(function () {
-
-			var T = NB.backupTypes.get(backupConf.type);
-			var foo = new T(backupConf.id, backupConf.conf, function () { });
-
-			foo.checkStatus(function (ok) {
-
-				if (ok) {
-					$text.val('OK');
-				}
-				else {
-					$text.val(foo.lastXhr.text);
-					$status.addClass('error');
-				}
-
-				onDone();
-			});
-
-			$(this).dequeue();
-		});
-	}
-
-	function configBackups() {
-		var conf = NB.storage.getConfig();
-
-		if (conf.backups.agents.length != 2)
-			throw 'Invalid conf.backups.agents[]'; // as per fixupConfig()
-
-		//
-		var $div = $('tt .backup-conf').clone();
-		var div = $div[0];
-
-		var $loc = $div.find('.loc');
-		var $rem = $div.find('.rem');
-
-		var typ = (new SimpleBackup).type;
-		var loc = conf.backups.agents[0];
-		var rem = conf.backups.agents[1];
-
-		div.checking = 0;
-
-		//
-		$loc.find('.auth').val(loc.conf.auth);
-		$rem.find('.auth').val(rem.conf.auth);
-		$rem.find('.base').val(rem.conf.base);
-
-		setBackupConfigUi($loc, loc);
-		setBackupConfigUi($rem, rem);
-
-		if (!loc.enabled && !rem.enabled)
-			$div.addClass('off');
-
-		//
-		$div.find('.opt').click(function () {
-
-			var $opt = $(this).parent();
-
-			if ($opt.hasClass('off')) {
-				$opt.find('.etc')
-					.css({ opacity: 0 })
-					.slideDown('fast')
-					.animate({ opacity: 1 }, 'fast')
-					.queue(function () {
-						$opt.removeClass('off');
-						$div.removeClass('off');
-						$(this).css('opacity', '').dequeue();
-					})
-
-				$opt.find('input').first()
-					.delay(800)
-					.queue(function () { $(this).focus().dequeue(); });
+				blob = JSON.stringify(all);
+				file = `Planejamento.nbx`;
 			}
 			else {
-				$opt.find('.etc')
-					.animate({ opacity: 0 }, 'fast')
-					.slideUp('fast')
-					.queue(function () {
-						$opt.addClass('off');
-						if ($loc.hasClass('off') && $rem.hasClass('off'))
-							$div.addClass('off');
-						$(this).css({ opacity: '' }).dequeue();
-					})
+				var board = NB.board;
+				blob = JSON.stringify(board);
+				file = `Planejamento-${board.id}-${board.title}.nbx`;
 			}
 
-			return false;
-		});
+			blob = encodeURIComponent(blob);
+			blob = "data:application/octet-stream," + blob;
 
-		$div.find('.check').click(function () {
-
-			if (div.checking)
-				return false;
-
-			var foo = getBackupConfigUi();
-			if (!foo)
-				return false;
-
-			if (foo.loc.enabled) {
-				div.checking++;
-				checkBackupConfig(foo.loc, $loc, function () { div.checking--; });
-			}
-
-			if (foo.rem.enabled) {
-				div.checking++;
-				checkBackupConfig(foo.rem, $rem, function () { div.checking--; });
-			}
-
-			return false;
-		});
-
-		$div.find('.ok').click(function () {
-
-			var foo = getBackupConfigUi();
-			if (!foo)
-				return false;
-
-			if (foo.loc.enabled && !loc.enabled)
-				foo.loc.id = typ + '-' + (conf.backups.nextId++);
-
-			if (foo.rem.enabled && !rem.enabled)
-				foo.rem.id = typ + '-' + (conf.backups.nextId++);
-
-			conf.backups.agents[0] = foo.loc;
-			conf.backups.agents[1] = foo.rem;
-
-			NB.storage.initBackups(onBackupStatusChange);
-			NB.storage.saveConfig();
-
-			hideOverlay();
-		});
-
-		$div.find('a.close').click(function () {
-			hideOverlay();
-		});
-
-		showOverlay($div);
-	}
-
-	function onBackupStatusChange(agent) {
-		var agents = NB.storage.backups.agents;
-
-		var $config = $('.config');
-		var $status = $('.config .teaser u')
-
-		//		if (agent) console.log( `onBackupStatusChange: ${agent.id}, status ${agent.status}, op ${agent.lastOp}, xhr '${agent.lastXhr.text}' / ${agent.lastXhr.code}` );
-		//		else       console.log( `onBackupStatusChange: <generic>` );
-
-		if (!agents.length) {
-			$config.removeClass('backups-on backup-err backing-up');
-			return;
+			return { blob: blob, file: file };
 		}
 
-		$config.addClass('backups-on');
+		function checkImport(foo) {
+			var props = ['format', 'id', 'revision', 'title', 'lists'];
 
-		var busy = 0;
-		var error = 0;
-		var ready = 0;
+			for (var i = 0; i < props.length; i++)
+				if (!foo.hasOwnProperty(props[i]))
+					return "Propriedades obrigatórias do quadro ausentes.";
 
-		agents.forEach(function (agent) {
-			if (agent.status == 'busy') busy++; else
-				if (agent.status == 'error') error++; else
-					if (agent.status == 'ready') ready++; else
-						throw `Unknown status [${agent.status}] on backup agent ${agent.id}`;
-		});
+			if (!foo.id || !foo.revision || !Array.isArray(foo.lists))
+				return "Propriedades obrigatórias do quadro estão vazias.";
 
-		if (error > 0) $config.addClass('backup-err').removeClass('backing-up'); else
-			if (busy > 0) $config.addClass('backing-up').removeClass('backup-err'); else
-				$config.removeClass('backing-up backup-err');
+			if (foo.format != NB.blobVersion)
+				return `Formato de blob não suportado "${foo.format}", esperando "${NB.blobVersion}".`;
 
-		// process all pending backups if needed
-
-		if (!error && !busy)
-			runPendingBackups();
-	}
-
-	function needsBackingUp(backupStatus, fields, agentIds) {
-		var stale = false;
-		agentIds.forEach(function (id) {
-			var obj = backupStatus[id];
-			if (obj) fields.forEach(function (f) { stale = !obj[f]; });
-			else stale = true;
-		});
-
-		return stale;
-	}
-
-	function runPendingBackups() {
-		console.log('Checking for pending backups...');
-
-		var conf = NB.storage.getConfig();
-
-		var agentIds = [];
-		NB.storage.backups.agents.forEach(function (agent) {
-			agentIds.push(agent.id);
-		});
-
-		if (needsBackingUp(conf.backupStatus, ['conf'], agentIds)) {
-			console.log("  Backing up app config...");
-			NB.storage.backupConfig();
+			return null;
 		}
 
-		var boards = NB.storage.getBoardIndex();
+		function importBoard(blob) {
+			var data;
 
-		boards.forEach(function (meta, id) {
+			try {
+				data = JSON.parse(blob);
+			}
+			catch (x) {
+				alert('Arquivo não é um formato JSON válido.');
+				return false;
+			}
 
-			if (!needsBackingUp(meta.backupStatus, ['data', 'meta'], agentIds))
+			if (!Array.isArray(data))
+				data = [data];
+
+			var index = NB.storage.getBoardIndex();
+			var msg, one, all = '';
+
+			for (var i = 0; i < data.length; i++) {
+				var board = data[i];
+
+				var whoops = checkImport(board);
+				if (whoops) {
+					alert(whoops);
+					return false;
+				}
+
+				var title = board.title || '(quadro sem título)';
+				one = `"${title}", ID ${board.id}, revisão ${board.revision}`;
+				all += `    ID ${board.id}, revisão ${board.revision} - "${title}"    \n`;
+			}
+
+			if (data.length == 1) msg = `Importar um quadro chamado ${one} ?`;
+			else msg = `Prestes a importar os seguintes quadros:\n\n${all}\nProsseguir?`;
+
+			if (!confirm(msg))
+				return false;
+
+			var to_open = '';
+
+			for (var i = 0; i < data.length; i++) {
+				var board = data[i];
+				var check_title = true;
+
+				// check ID
+
+				if (index.has(board.id)) {
+					var which = (data.length == 1) ? "com o mesmo ID" : board.id;
+
+					if (confirm(`Quadro ${which} já existe. Sobrescrever?`) &&
+						confirm(`SOBRESCREVER com certeza?`)) {
+						console.log(`Import: ${board.id} (${board.title} - will overwrite existing one`);
+						check_title = false;
+					}
+					else
+						if (confirm(`Importar o quadro com um novo ID?`)) {
+							var new_id = +new Date();
+							console.log(`Import: ${board.id} (${board.title} - will import as ${new_id}`);
+							board.id = new_id;
+						}
+						else {
+							console.log(`Import: ${board.id} (${board.title} - ID conflict, will not import`);
+							continue;
+						}
+				}
+
+				if (check_title) {
+					var retitle = false;
+					index.forEach(have => { retitle |= (have.title == board.title) });
+
+					if (retitle) board.title += ' (importado)';
+				}
+
+				// ok, do the deed
+
+				board.revision--; // save will ++ it back
+
+				if (!NB.storage.saveBoard(board)) // this updates 'index'
+				{
+					alert(`Falha ao salvar quadro ${board.id}. Importação falhou.`);
+					return false;
+				}
+
+				if (!to_open) to_ope = ta	 ].id;
+			}
+
+			if (to_open) openBoard(to_open);
+		}
+
+		/*
+		 *
+		 */
+		function findBack	pAg	 t(ich) {
+			var a = null;
+
+			NB.storage.backups.agents.forEach(function (agent) {
+				if (agent.type == which.type &&
+					agent.conf.auth == which.conf.auth &&
+					agent.conf.base == which.conf.base) {
+					a = agent;
+				}
+			});
+
+			return a;
+		}
+
+		function setBackupConfigUi($div, backupConf) {
+			if (!backupConf.enabled) {
+				$div.addClass('off');
 				return;
+			}
 
-			console.log(`  Backing up board ${id}...`);
+			var $status = $div.find('.status');
+			var b = findBackupAgent(backupConf);
+			var text = 'OK';
 
-			var board = NB.storage.loadBoard(id);
-			if (!board)
-				re	urn	 
-		 NB.storage.backupBoard(id, board, meta)
-		});
-	}
+			if (b && b.status == 'error') {
+				text = b.lastXhr.text;
+				$status.addClass('error');
+			}
 
-	/*
-	 *
-	 */
-	function saveBoar	Ord	 ()	 
+			$status.find('input').val(text);
+			$status.css({ display: 'block' });
+		}
+
+		function getBackupConfigUi() {
+			var conf = NB.storage.getConfig();
+			var loc = conf.backups.agents[0];
+			var rem = conf.backups.agents[1];
+
+			var $div = $('.overlay .backup-conf');
+			var $loc = $div.find('.loc');
+			var $rem = $div.find('.rem');
+
+			var ret =
+			{
+				loc: jsonClone(loc),
+				rem: jsonClone(rem)
+			};
+
+			ret.loc.enabled = !$loc.hasClass('off');
+			ret.loc.conf.auth = $loc.find('.auth').val();
+
+			ret.rem.enabled = !$rem.hasClass('off');
+			ret.rem.conf.base = $rem.find('.base').val();
+			ret.rem.conf.auth = $rem.find('.auth').val();
+
+			//
+			if (ret.loc.enabled && !ret.loc.conf.auth) {
+				shakeControl($loc.find('.auth'));
+				return null;
+			}
+
+			if (ret.rem.enabled && !ret.rem.conf.base) {
+				shakeControl($rem.find('.base'));
+				return null;
+			}
+
+			if (ret.rem.enabled && !ret.rem.conf.auth) {
+				shakeControl($rem.find('.auth'));
+				return null;
+			}
+
+			return ret;
+		}
+
+		function checkBackupConfig(backupConf, $div, onDone) {
+			var $status = $div.find('.status');
+			var $text = $status.find('input');
+
+			$text.val('Verificando...');
+			$status.removeClass('error').slideDown();
+
+			$div.delay(850).queue(function () {
+
+				var T = NB.backupTypes.get(backupConf.type);
+				var foo = new T(backupConf.id, backupConf.conf, function () { });
+
+				foo.checkStatus(function (ok) {
+
+					if (ok) {
+						$text.val('OK');
+					}
+					else {
+						$text.val(foo.lastXhr.text);
+						$status.addClass('error');
+					}
+
+					onDone();
+				});
+
+				$(this).dequeue();
+			});
+		}
+
+		function configBackups() {
+			var conf = NB.storage.getConfig();
+
+			if (conf.backups.agents.length != 2)
+				throw 'Invalid conf.backups.agents[]'; // as per fixupConfig()
+
+			//
+			var $div = $('tt .backup-conf').clone();
+			var div = $div[0];
+
+			var $loc = $div.find('.loc');
+			var $rem = $div.find('.rem');
+
+			var typ = (new SimpleBackup).type;
+			var loc = conf.backups.agents[0];
+			var rem = conf.backups.agents[1];
+
+			div.checking = 0;
+
+			//
+			$loc.find('.auth').val(loc.conf.auth);
+			$rem.find('.auth').val(rem.conf.auth);
+			$rem.find('.base').val(rem.conf.base);
+
+			setBackupConfigUi($loc, loc);
+			setBackupConfigUi($rem, rem);
+
+			if (!loc.enabled && !rem.enabled)
+				$div.addClass('off');
+
+			//
+			$div.find('.opt').click(function () {
+
+				var $opt = $(this).parent();
+
+				if ($opt.hasClass('off')) {
+					$opt.find('.etc')
+						.css({ opacity: 0 })
+						.slideDown('fast')
+						.animate({ opacity: 1 }, 'fast')
+						.queue(function () {
+							$opt.removeClass('off');
+							$div.removeClass('off');
+							$(this).css('opacity', '').dequeue();
+						})
+
+					$opt.find('input').first()
+						.delay(800)
+						.queue(function () { $(this).focus().dequeue(); });
+				}
+				else {
+					$opt.find('.etc')
+						.animate({ opacity: 0 }, 'fast')
+						.slideUp('fast')
+						.queue(function () {
+							$opt.addClass('off');
+							if ($loc.hasClass('off') && $rem.hasClass('off'))
+								$div.addClass('off');
+							$(this).css({ opacity: '' }).dequeue();
+						})
+				}
+
+				return false;
+			});
+
+			$div.find('.check').click(function () {
+
+				if (div.checking)
+					return false;
+
+				var foo = getBackupConfigUi();
+				if (!foo)
+					return false;
+
+				if (foo.loc.enabled) {
+					div.checking++;
+					checkBackupConfig(foo.loc, $loc, function () { div.checking--; });
+				}
+
+				if (foo.rem.enabled) {
+					div.checking++;
+					checkBackupConfig(foo.rem, $rem, function () { div.checking--; });
+				}
+
+				return false;
+			});
+
+			$div.find('.ok').click(function () {
+
+				var foo = getBackupConfigUi();
+				if (!foo)
+					return false;
+
+				if (foo.loc.enabled && !loc.enabled)
+					foo.loc.id = typ + '-' + (conf.backups.nextId++);
+
+				if (foo.rem.enabled && !rem.enabled)
+					foo.rem.id = typ + '-' + (conf.backups.nextId++);
+
+				conf.backups.agents[0] = foo.loc;
+				conf.backups.agents[1] = foo.rem;
+
+				NB.storage.initBackups(onBackupStatusChange);
+				NB.storage.saveConfig();
+
+				hideOverlay();
+			});
+
+			$div.find('a.close').click(function () {
+				hideOverlay();
+			});
+
+			showOverlay($div);
+		}
+
+		function onBackupStatusChange(agent) {
+			var agents = NB.storage.backups.agents;
+
+			var $config = $('.config');
+			var $status = $('.config .teaser u')
+
+			//		if (agent) console.log( `onBackupStatusChange: ${agent.id}, status ${agent.status}, op ${agent.lastOp}, xhr '${agent.lastXhr.text}' / ${agent.lastXhr.code}` );
+			//		else       console.log( `onBackupStatusChange: <generic>` );
+
+			if (!agents.length) {
+				$config.removeClass('backups-on backup-err backing-up');
+				return;
+			}
+
+			$config.addClass('backups-on');
+
+			var busy = 0;
+			var error = 0;
+			var ready = 0;
+
+			agents.forEach(function (agent) {
+				if (agent.status == 'busy') busy++; else
+					if (agent.status == 'error') error++; else
+						if (agent.status == 'ready') ready++; else
+							throw `Unknown status [${agent.status}] on backup agent ${agent.id}`;
+			});
+
+			if (error > 0) $config.addClass('backup-err').removeClass('backing-up'); else
+				if (busy > 0) $config.addClass('backing-up').removeClass('backup-err'); else
+					$config.removeClass('backing-up backup-err');
+
+			// process all pending backups if needed
+
+			if (!error && !busy)
+				runPendingBackups();
+		}
+
+		function needsBackingUp(backupStatus, fields, agentIds) {
+			var stale = false;
+			agentIds.forEach(function (id) {
+				var obj = backupStatus[id];
+				if (obj) fields.forEach(function (f) { stale = !obj[f]; });
+				else stale = true;
+			});
+
+			return stale;
+		}
+
+		function runPendingBackups() {
+			console.log('Checking for pending backups...');
+
+			var conf = NB.storage.getConfig();
+
+			var agentIds = [];
+			NB.storage.backups.agents.forEach(function (agent) {
+				agentIds.push(agent.id);
+			});
+
+			if (needsBackingUp(conf.backupStatus, ['conf'], agentIds)) {
+				console.log("  Backing up app config...");
+				NB.storage.backupConfig();
+			}
+
+			var boards = NB.storage.getBoardIndex();
+
+			boards.forEach(function (meta, id) {
+
+				if (!needsBackingUp(meta.backupStatus, ['data', 'meta'], agentIds))
+					return;
+
+				console.log(`  Backing up board ${id}...`);
+
+				var board = NB.storage.loadBoard(id);
+				if (!board)
+				re	urn
+				NB.storage.backupBoard(id, board, meta)
+			});
+		}
+
+		/*
+		 *
+		 */
+		function saveBoar	Ord()
 		var $index = $('.config .load-board');
 		var spot = 1;
 
 		$index.each(function () {
 			var id = parseInt($(this).attr('board	id'	 ;
-	 	NB.storage.setBoardUiSpot(id, spot++);
+			NB.storage.setBoardUiSpot(id, spot++);
 		});
 	}
 
 	/*
 	 *
 	 */
-	function updatePa	eTi	 e(	 {
+	function updatePa	eTi	 e({
 		var title = 'Planejamento';
 
-		if (NB.board) {
-			title = NB.board.title;
-			title = 'Plan - ' + (title || '(quadro sem título)');
-		}
+		if(NB.board) {
+		title = NB.board.title;
+		title = 'Plan - ' + (title || '(quadro sem título)');
+	}
 
-		document.title = title;
+	document.title = title;
 	}
 
 	function updateUndoRedo() {
@@ -4240,7 +4241,7 @@
 		var $link = $('.logo .view-changes');
 		var link = $link.attr('href') + '/?have=' + NB.codeVersion;
 		if (conf.verSeen) link += '&seen=' + conf.verSeen;
-		if (conf.verLast) link 	= '	 ast=' + conf.ver	 st;
+		if (conf.verLast) link = '	 ast=' + conf.ver	 st;
 		$link.attr('href', link);
 	}
 
@@ -4297,117 +4298,118 @@
 			.animate({ left: '+2px' }, 60)
 			.animate({ left: '0px' }, 60)
 			.queue(function () {
-				$	 css({ position: '	  left: '' }).dequeue();
+				$	 css({
+				position: '	  left: '' }).dequeue();
 			});
-	}
+			}
 
 	/*
 	 *	inline editing
 	 */
-	fu	cti	  startEditing($te	 , ev) {
-		var $note = $text.parent();
-		var $edit = $note.find('.edit');
+	fu	cti	  startEditing($te, ev) {
+				var $note = $text.parent();
+				var $edit = $note.find('.edit');
 
-		$note[0]._collapsed = $note.hasClass('collapsed');
-		$note.removeClass('collapsed');
+				$note[0]._collapsed = $note.hasClass('collapsed');
+				$note.removeClass('collapsed');
 
-		$edit.val(getText($text));
-		$edit.width($text.width());
+				$edit.val(getText($text));
+				$edit.width($text.width());
 
-		$edit.height($text.height());
-		$note.addClass('editing');
+				$edit.height($text.height());
+				$note.addClass('editing');
 
-		$edit.focus();
-	}
+				$edit.focus();
+			}
 
 	function stopEditing($edit, via_escape, via_xclick) {
-		var $item = $edit.parent();
-		if (!$item.hasClass('editing'))
-			return;
+					var $item = $edit.parent();
+					if (!$item.hasClass('editing'))
+						return;
 
-		$item.removeClass('editing');
-		if ($item[0]._collapsed)
-			$item.addClass('collapsed')
+					$item.removeClass('editing');
+					if ($item[0]._collapsed)
+						$item.addClass('collapsed')
 
-		//
-		var $text = $item.find('.text');
-		var text_now = $edit.val().trimRight();
-		var text_was = getText($text);
+					//
+					var $text = $item.find('.text');
+					var text_now = $edit.val().trimRight();
+					var text_was = getText($text);
 
-		//
-		var brand_new = $item.hasClass('brand-new');
-		$item.removeClass('brand-new');
+					//
+					var brand_new = $item.hasClass('brand-new');
+					$item.removeClass('brand-new');
 
-		if (via_escape) {
-			if (brand_new)
-				$item.closest('.note, .list, .board').remove();
-			return;
-		}
+					if (via_escape) {
+						if (brand_new)
+							$item.closest('.note, .list, .board').remove();
+						return;
+					}
 
-		if (via_xclick && brand_new && !text_now.length) {
-			$item.closest('.note, .list, .board').remove();
-			return;
-		}
+					if (via_xclick && brand_new && !text_now.length) {
+						$item.closest('.note, .list, .board').remove();
+						return;
+					}
 
-		if (text_now != text_was || brand_new) {
-			setText($text, text_now);
+					if (text_now != text_was || brand_new) {
+						setText($text, text_now);
 
-			if ($item.parent().hasClass('board'))
-				NB.board.title = text_now;
+						if ($item.parent().hasClass('board'))
+							NB.board.title = text_now;
 
-			updatePageTitle();
-			saveBoard();
-		}
+						updatePageTitle();
+						saveBoard();
+					}
 
-		//
-		if (brand_new && $item.hasClass('list'))
-			addNote($item);
-	}
+					//
+					if (brand_new && $item.hasClass('list'))
+						addNote($item);
+				}
 
 	function handleTab(ev) {
-		var $this = $(this);
-		var $note = $this.closest('.note');
-		var $sibl = ev.shiftKey ? $note.prev() : $note.next();
+					var $this = $(this);
+					var $note = $this.closest('.note');
+					var $sibl = ev.shiftKey ? $note.prev() : $note.next();
 
-		if ($sibl.length) {
-			stopEditing($this, false, false);
-			$sibl.find('.text').click();
-		}
-	}
+					if ($sibl.length) {
+						stopEditing($this, false, false);
+						$sibl.find('.text').click();
+					}
+				}
 
 	//
 	function setRevealState(ev) {
-		var raw = ev.originalEvent;
-		var do_reveal = raw.getModifierState && (raw.getModifierState('CapsLock') || raw.getModifierState('Control'));
+					var raw = ev.originalEvent;
+					var do_reveal = raw.getModifierState && (raw.getModifierState('CapsLock') || raw.getModifierState('Control'));
 
-		if (do_reveal) $('body').addClass('reveal');
-		else $('body').removeClass('reveal');
-	}
+					if (do_reveal) $('body').addClass('reveal');
+					else $('body').removeClass('reveal');
+				}
 
 	//
 	function showDing() {
-		$('body')
-			.addClass('ding')
-			.delay(250)
-			.queue(f	nct	 n () { $(t	 s).removeClass('ding').dequeue(); });
-	}
+					$('body')
+						.addClass('ding')
+						.delay(250)
+						.queue(f	nct	 n() { $(t	 s).removeClass('ding').dequeue(); });
+				}
 
 	/*
 	 *	overlay
 	 */
-	function 	how	 erlay($div	 {
-		$('.overlay')
+	function how	 erlay($div	 {
+					$('.overlay')
 			.html('')
-			.append($div)
-			.css({ opacity: 0, display: 'flex' })
-			.animate({ opacity: 1 });
-	}
+						.append($div)
+						.css({ opacity: 0, display: 'flex' })
+						.animate({ opacity: 1 });
+				}
 
 	function hideOverlay() {
-		$('.overlay').animate({ opacity: 0 }, function () {
-			$(this).hide();
-		});
-	}
+						$('.overlay').animate({ opacity: 0 }, function () {
+							$(this).hide();
+						});
+					}
 
 	function haveOverl	y()	 
 		return $('.ov	 lay').css('display') != 'none';
@@ -4417,37 +4419,37 @@
 	 *	license popup
 	 */
 	fun	tio	 formatLicense() 	 		var text = document.head.childNodes[1].nodeValue;
-		var pos = text.search('LICENÇA');
-		var qos = text.search('Software:');
-		var bulk;
+	var pos = text.search('LICENÇA');
+	var qos = text.search('Software:');
+	var bulk;
 
-		bulk = text.substr(pos, qos - pos);
-		bulk = bulk.replace(/([^\n])\n\t/g, '$1 ');
-		bulk = bulk.replace(/\n\n\t/g, '\n\n');
-		bulk = bulk.replace(/([A-Z ]{7,})/g, '<u>$1</u>');
+	bulk = text.substr(pos, qos - pos);
+	bulk = bulk.replace(/([^\n])\n\t/g, '$1 ');
+	bulk = bulk.replace(/\n\n\t/g, '\n\n');
+	bulk = bulk.replace(/([A-Z ]{7,})/g, '<u>$1</u>');
 
-		//
-		var c1 = [];
-		var c2 = [];
+	//
+	var c1 = [];
+	var c2 = [];
 
-		text.substr(qos).trim().split('\n').forEach(function (line) {
-			line = line.split(':');
-			c1.push(line[0].trim() + ':');
-			c2.push(line[1].trim());
-		});
+	text.substr(qos).trim().split('\n').forEach(function (line) {
+		line = line.split(':');
+		c1.push(line[0].trim() + ':');
+		c2.push(line[1].trim());
+	});
 
-		bulk += '<span>' + c1.join('<br>') + '</span>';
-		bulk += '<span>' + c2.join('<br>') + '</span>';
+	bulk += '<span>' + c1.join('<br>') + '</span>';
+	bulk += '<span>' + c2.join('<br>') + '</span>';
 
-		//
-		var links =
-			[
-				{ text: 'A Licença BSD de 2 cláusulas', href: 'https://opensource.org/licenses/BSD-2-Clause/' },
-				{ text: 'Commons Clause', href: 'https://commonsclause.com/' }
-			];
+	//
+	var links =
+		[
+			{ text: 'A Licença BSD de 2 cláusulas', href: 'https://opensource.org/licenses/BSD-2-Clause/' },
+			{ text: 'Commons Clause', href: 'https://commonsclause.com/' }
+		];
 
-		links.forEach(function (l) {
-			bulk = bulk.replace(l.text, '<a href="' + l.href + '" target=_b	ank	  + l.text + '</a>');
+	links.forEach(function (l) {
+		bulk = bulk.replace(l.text, '<a href="' + l.href + '" target=_b	ank	  + l.text + '</a > ');
 			 ;
 
 		return bulk.trim();
@@ -4538,7 +4540,7 @@
 	/*
 	 *	dragsters
 	 */
-	functio	 in	 DragAndDrop(	 {
+	functio in DragAndDrop({
 		NB.noteDrag = new Drag2();
 		NB.noteDrag.listSel = '.board .list .notes';
 		NB.noteDrag.itemSel = '.note';
@@ -4594,8 +4596,8 @@
 	/*
 	 *	fonts
 	 */
-	function in	tFo	 s() {
-			 r toGo = 0;
+	function in tFo	 s() {
+		r toGo = 0;
 		var loaded = [];
 		var failed = [];
 
@@ -4603,8 +4605,8 @@
 
 		//
 		function isUsable(f) {
-			return !failed.includes(f) && loaded.includes(f);
-		}
+		return !failed.includes(f) && loaded.includes(f);
+	}
 
 		function onFontsLoaded() {
 			var conf = NB.storage.getConfig();
@@ -4782,7 +4784,7 @@
 	/*
 	 *	event handlers
 	 */
-	$(	ind	 ).on('blur', func	 on () {
+	$(ind).on('blur', func	 on() {
 		$('body').removeClass('reveal');
 	});
 
@@ -5226,21 +5228,21 @@
 	/*
 	 *	the init()
 	 */
-	var NB	=
-		 		codeVersion	 20231105,
-		blobVersion: 20190412, // board blob format in Storage
-		board: null,
-		storage: null,
+	var NB =
+		codeVersion	 20231105,
+			blobVersion: 20190412, // board blob format in Storage
+				board: null,
+					storage: null,
 
-		peek: function (name) {
-			return this.storage.getConfig()[name];
-		},
+						peek: function (name) {
+							return this.storage.getConfig()[name];
+						},
 
-		poke: function (name, val) {
-			var conf = this.storage.getConfig();
-			conf[name] = val;
-			return this.storage.saveConfig();
-		}
+	poke: function (name, val) {
+		var conf = this.storage.getConfig();
+		conf[name] = val;
+		return this.storage.saveConfig();
+	}
 	};
 
 	NB.storage = new Storage_Local();
@@ -5374,7 +5376,7 @@ function generatePDF() {
     // Create printable content
     var content = document.createElement('div');
     content.innerHTML = `
-			<div style="font-family: sans-serif; padding: 20px;">
+		< div style = "font-family: sans-serif; padding: 20px;" >
 				<h1 style="color: #1A5799; border-bottom: 2px solid #1A5799; padding-bottom: 10px;">Planejamento Educacional</h1>
 				<div style="margin-bottom: 20px; font-size: 14px; background: #f0f0f0; padding: 10px; border-radius: 4px;">
 					<p><b>Professor(a):</b> ${name}</p>
@@ -5383,7 +5385,7 @@ function generatePDF() {
 					<p><b>Data:</b> ${new Date().toLocaleDateString('pt-BR')}</p>
 				</div>
 				<div id="pdf-lists"></div>
-			</div>
+			</div >
 		`;
 
     // Clone lists
@@ -5395,7 +5397,7 @@ function generatePDF() {
             listDiv.style.border = '1px solid #ccc';
             listDiv.style.pageBreakInside = 'avoid';
 
-            listDiv.innerHTML = `<h3 style="background:#eee; padding:5px 10px; margin:0; border-bottom:1px solid #ccc;">${list.title}</h3>`;
+            listDiv.innerHTML = `< h3 style = "background:#eee; padding:5px 10px; margin:0; border-bottom:1px solid #ccc;" > ${ list.title }</h3 > `;
 
             var ul = document.createElement('ul');
             ul.style.listStyle = 'none';
@@ -5419,7 +5421,7 @@ function generatePDF() {
 
     var opt = {
         margin: 10,
-        filename: `Planejamento-${name ? name.split(' ')[0] : 'Aula'}.pdf`,
+        filename: `Planejamento - ${ name? name.split(' ')[0] : 'Aula'}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { scale: 2 },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
