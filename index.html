@@ -2,6 +2,7 @@
 <html lang="pt-BR">
 
 <head>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 	<!--
 
 	+-------------------------------------------------------------+
@@ -1845,7 +1846,9 @@
 				<!-- here'll be boards -->
 			</div>
 
-			<a href=# class=exp-board>Exportar quadro atual...</a>
+			<a href="#" onclick="openExportModal(); return false;" class=exp-board>Exportar PDF Estruturado...</a>
+			<a href="#" onclick="NB.boardData.exportBoard(); return false;" class=exp-json
+				style="font-size:0.9em; opacity:0.7;">(Backup Técnico .nbx)</a>
 			<a href=# class=imp-board>Importar quadros...</a>
 			<input class=imp-board-select type="file" accept=".nbx">
 
@@ -1883,11 +1886,68 @@
 						</table>
 					</div>
 
-					<a href="#" class="switch-theme break">Usar tema <i>claro</i><b>escuro</b></a>
+					<a href="#" class="switch-theme break" style="display:none">Usar tema <i>claro</i><b>escuro</b></a>
+					<a href="#tutorial-modal" class="view-tutorial break">Como usar (Tutorial)</a>
 				</div>
 			</div>
 		</div>
 	</div>
+	</div>
+
+	<!-- Tutorial Modal -->
+	<div id="tutorial-modal" class="tutorial-modal"
+		style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:2000; align-items:center; justify-content:center;">
+		<div
+			style="background:white; padding:20px; border-radius:8px; max-width:500px; width:90%; max-height:80vh; overflow-y:auto; position:relative;">
+			<a href="#" onclick="document.getElementById('tutorial-modal').style.display='none'; return false;"
+				style="position:absolute; top:10px; right:15px; font-size:20px; text-decoration:none; color:#333;">&times;</a>
+			<h2>Como usar o Planejamento</h2>
+			<p>Este é um quadro Kanban para organizar suas aulas e atividades.</p>
+			<h3>Básico:</h3>
+			<ul>
+				<li><b>Quadros:</b> Crie quadros para matérias ou turmas diferentes.</li>
+				<li><b>Listas:</b> Use para fases (ex: Planejamento, Em andamento, Concluído).</li>
+				<li><b>Notas:</b> São suas aulas ou tarefas. Clique para editar. Arraste para mover.</li>
+			</ul>
+			<h3>Dicas:</h3>
+			<ul>
+				<li>Clique no <b>Menu (☰)</b> para exportar ou fazer backup.</li>
+				<li>Use o botão <b>+</b> para novas listas ou notas.</li>
+				<li>No celular, arraste o quadro para o lado para ver mais listas.</li>
+			</ul>
+			<p><b>Exportação PDF:</b> Agora você pode gerar um PDF completo com seus dados e planejamento para
+				impressão.</p>
+			<button onclick="document.getElementById('tutorial-modal').style.display='none'"
+				style="margin-top:10px; padding:10px 20px; background:#1A5799; color:white; border:none; border-radius:4px; cursor:pointer;">Entendi</button>
+		</div>
+	</div>
+
+	<!-- Teacher Info Modal for Export -->
+	<div id="export-modal" class="export-modal"
+		style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:2000; align-items:center; justify-content:center;">
+		<div style="background:white; padding:20px; border-radius:8px; max-width:400px; width:90%;">
+			<h3>Exportar Planejamento (PDF)</h3>
+			<label style="display:block; margin-top:10px;">Nome do Professor(a):</label>
+			<input type="text" id="teacher-name"
+				style="width:100%; padding:8px; margin-top:5px; border:1px solid #ddd; border-radius:4px;">
+
+			<label style="display:block; margin-top:10px;">Escola/Instituição:</label>
+			<input type="text" id="teacher-school"
+				style="width:100%; padding:8px; margin-top:5px; border:1px solid #ddd; border-radius:4px;">
+
+			<label style="display:block; margin-top:10px;">Turma/Disciplina:</label>
+			<input type="text" id="teacher-class"
+				style="width:100%; padding:8px; margin-top:5px; border:1px solid #ddd; border-radius:4px;"
+				placeholder="Ex: Matemática - 7º Ano">
+
+			<div style="margin-top:20px; text-align:right;">
+				<button onclick="document.getElementById('export-modal').style.display='none'"
+					style="padding:8px 15px; background:#ccc; border:none; border-radius:4px; cursor:pointer;">Cancelar</button>
+				<button onclick="generatePDF()"
+					style="padding:8px 15px; background:#1A5799; color:white; border:none; border-radius:4px; cursor:pointer; margin-left:10px;">Gerar
+					PDF</button>
+			</div>
+		</div>
 	</div>
 
 	<div class=wrap>
@@ -1996,22 +2056,22 @@
 </body>
 
 <script src="extras/jquery-3.6.0.min.js"></script>
-<script>window.jQuery || document.write('<script src="https://code.jquery.com/jquery-3.6.0.min.js">\x3C/script>')</script>
+<script>window.jQuery || document.write('<script src="h.6.0.min.js">\x3C/script>')</script>
 
 <script type="text/javascript">
 
-	Number.prototype.clamp = function (min, max) {
+	Number.prototype.clamp = function (mi	, m	 ) {
 		return Math.min(Math.max(this, min), max);
 	};
 
 	/*
-	 *	add a blank line to push 'Prevent this page from opening ...'
-	 *	tack-on from the actual message we are trying to display
+	 *	ad	 a blank line to push 'Prevent this page from opening ...'
+		 	tack-on from the actual message we are trying to display
 	 */
 	var confirm_org = window.confirm;
 	var alert_org = window.alert;
 	window.confirm = function (msg) { return confirm_org(msg + "\n "); }
-	window.alert = function (msg) { return alert_org(msg + "\n "); }
+	window.aalert_org(msg + "\n "); }
 
 </script>
 
@@ -2148,14 +2208,13 @@
 
 		//
 
-		getBoardIndex() {
-			return this.boardIndex;
+		getBoardInd			) {			 return this.boardIndex;
 		}
 
-		saveBoard(board) {
+		saveBoar			 ard) {
 			/*
 			 *	1. assign new revision (next unused)
-			 *	2. trim all in-between revisions bypassed by undos if any
+			 			  trim all in-between revisions 			 ssed by undos if any
 			 *	3. cap history as per config
 			 */
 			var meta = this.boardIndex.get(board.id);
@@ -2196,18 +2255,16 @@
 						console.log(`Deleted revision ${rev} of ${board.id} (${board.title})`);
 					}
 					else {
-						rebuild.push(rev);
+						rebuild			sh(			 ;
 					}
-				}
-
-				meta.history = rebuild;
+						 				meta.history = rebuild;
 			}
 
 			/*
 			 *	save meta
 			 */
 			ok_meta = this.setJson('board.' + board.id + '.meta', meta) &&
-				this.setJson('board.' + board.id, meta.current); // for older versions
+				this.setJson			oar			 + board.id, me			 urrent); // for older versions
 
 			/*
 			 *	run backups
@@ -2316,7 +2373,7 @@
 
 			this.backupBoard(board_id, null, meta);
 
-			return this.setJson('board.' + board_id + '.meta', meta);
+			ret		n t		 .setJson('		 rd.' + board_id + '.meta', meta);
 		}
 
 		/*
@@ -2340,8 +2397,8 @@
 
 		setJson(name, val) {
 			if (!this.setItem(name, JSON.stringify(val))) {
-				console.log("setJson(" + name + ") failed");
-				return false;
+				console.log("setJson(" + name 		") 		 led");
+				 eturn false;
 			}
 
 			return true;
@@ -2387,8 +2444,7 @@
 					type: simp,
 					id: simp + '-' + (conf.backups.nextId++),
 					enabled: def[1].base && def[1].auth,
-					conf: def[1],
-				})
+							 f: def[1],		 		})
 
 				this.saveConfig();
 			}
@@ -2624,7 +2680,7 @@
 				else i++;
 			}
 
-			this.conf = new AppConfig();
+			this.c		f =		 w AppConfi		 ;
 			this.boardIndex = new Map();
 		}
 
@@ -2669,7 +2725,7 @@
 			var board = this.getJson('board.' + board_id + '.' + meta.current)
 			meta.title = (board.title || '(untitled board)');
 
-			this.setJson('board.' + board_id + '.meta', meta);
+			this.setJson('bo	rd.	 + 	 ard_id + '.meta', meta);
 
 			return meta;
 		}
@@ -2778,8 +2834,7 @@
 				{
 					url: this.conf.base + '/board/' + id,
 					type: 'delete',
-					headers: { 'X-Access-Token': this.conf.auth },
-				}
+					headers: { 'X-Access-Token		 th		 conf.auth 		 				}
 			});
 
 			this.runQueue();
@@ -2832,8 +2887,7 @@
 			console.log(`Backup agent '${this.id}' status: '${this.status}' -> '${status}'`);
 
 			this.status = status;
-			this.lastOp = op;
-			this.onStatusChange(this);
+	tatusChange(this);
 		}
 	}
 
@@ -2866,8 +2920,7 @@
 		this.lists = [];
 
 		this.addList = function (title) {
-			var x = new List(title);
-			this.lists.push(x);
+			var x = newh(x);
 			return x;
 		}
 	}
@@ -2970,9 +3023,9 @@
 			var drag_x = drag.mouseEv.clientX + drag.delta.x + scroll_x;
 			var drag_y = drag.mouseEv.clientY + drag.delta.y + scroll_y;
 
-			$drag.offset({ left: drag_x, top: drag_y });
+			$drag.offset({ left			rag			 top: drag_y });
 
-			if (drag.inSwap)
+			if (drag			 wap)
 				return;
 
 			/*
@@ -3046,7 +3099,7 @@
 				$target = $(targetItem);
 
 				if (!before && $target.next()[0] == drag.item ||
-					before && $target.prev()[0] == drag.item)
+					b			re 			 target.prev			 ] == drag.item)
 					return;
 			}
 
@@ -3076,10 +3129,9 @@
 
 			drag.item = $want[0];
 
-			if (!drag.swapAnimMs) {
-				$have.remove();
-				$want.show();
-				return;
+			if (!drag.swapAnimMs			
+					 ave.remove();
+				$want.show();			 	return;
 			}
 
 			/*
@@ -3170,10 +3222,7 @@
 				removeTextSelection();
 
 				if (this.onDragging)
-					this.onDragging.call(this, false); // stopped
-			}
-
-			this.item = null;
+					this.onDragging.call(th	this.item = null;
 		}
 	}
 
@@ -3221,9 +3270,7 @@
 				return;
 
 			$('body').removeClass('adjusting');
-			this.onChange = null;
-
-			if (this.onFinish) this.onFinish();
+			this.onChang) this.onFinish();
 		}
 	}
 
@@ -3244,7 +3291,7 @@
 
 	window.addEventListener("error", function (e) {
 		var cb2;
-		if (!easyMartina) alert("Error occurred: " + e.error.message);
+		if (!easyMartina) alert("	rro	 occurred: " + e.error.mes	 ge);
 		return false;
 	});
 
@@ -3552,8 +3599,8 @@
 				.animate({ opacity: 1 });
 
 		updatePageTitle();
-		updateUndoRedo();
-		updateBoardIndex();
+		updateUn	oRe	 ();
+		updateB	 rdIndex();
 		setupListScrolling();
 	}
 
@@ -3663,9 +3710,9 @@
 		demo.revision = 0;
 
 		NB.storage.saveBoard(demo);
-		NB.storage.setActiveBoard(demo.id);
+		NB.storage.setActiveBoar	(de	 .id);
 
-		return Object.assign(new Board(), demo);
+		return Object.a	 ign(new Board(), demo);
 	}
 
 	/*
@@ -3795,7 +3842,7 @@
 				return false;
 			}
 
-			if (!to_open) to_open = data[0].id;
+			if (!to_open) to_ope	 = 	 ta	 ].id;
 		}
 
 		if (to_open) openBoard(to_open);
@@ -4096,9 +4143,8 @@
 
 			var board = NB.storage.loadBoard(id);
 			if (!board)
-				return;
-
-			NB.storage.backupBoard(id, board, meta)
+				re	urn	 
+		 NB.storage.backupBoard(id, board, meta)
 		});
 	}
 
@@ -4110,8 +4156,8 @@
 		var spot = 1;
 
 		$index.each(function () {
-			var id = parseInt($(this).attr('board_id'));
-			NB.storage.setBoardUiSpot(id, spot++);
+			var id = parseInt($(this).attr('board	id'	 ;
+	 	NB.storage.setBoardUiSpot(id, spot++);
 		});
 	}
 
@@ -4205,7 +4251,7 @@
 		var $link = $('.logo .view-changes');
 		var link = $link.attr('href') + '/?have=' + NB.codeVersion;
 		if (conf.verSeen) link += '&seen=' + conf.verSeen;
-		if (conf.verLast) link += '&last=' + conf.verLast;
+		if (conf.verLast) link 	= '	 ast=' + conf.ver	 st;
 		$link.attr('href', link);
 	}
 
@@ -4263,7 +4309,7 @@
 			.animate({ left: '+2px' }, 60)
 			.animate({ left: '0px' }, 60)
 			.queue(function () {
-				$x.css({ position: '', left: '' }).dequeue();
+				$	 css({ position: '	  left: '' }).dequeue();
 			});
 	}
 
@@ -4355,7 +4401,7 @@
 		$('body')
 			.addClass('ding')
 			.delay(250)
-			.queue(function () { $(this).removeClass('ding').dequeue(); });
+			.queue(f	nct	 n () { $(t	 s).removeClass('ding').dequeue(); });
 	}
 
 	/*
@@ -4375,8 +4421,8 @@
 		});
 	}
 
-	function haveOverlay() {
-		return $('.overlay').css('display') != 'none';
+	function haveOverl	y()	 
+		return $('.ov	 lay').css('display') != 'none';
 	}
 
 	/*
@@ -4414,8 +4460,8 @@
 			];
 
 		links.forEach(function (l) {
-			bulk = bulk.replace(l.text, '<a href="' + l.href + '" target=_blank>' + l.text + '</a>');
-		});
+			bulk = bulk.replace(l.text, '<a href="' + l.href + '" target=_b	ank	  + l.text + '</a>');
+			 ;
 
 		return bulk.trim();
 	}
@@ -4498,7 +4544,7 @@
 		$scroller[0]._busyScrolling = 0;
 
 		$scroller.on('scroll', function () { cloneScrollPos($scroller, $lists); });
-		$lists.on('scroll', function () { cloneScrollPos($lists, $scroller); });
+		$lists.on('scroll', function () { cl	neS	 ollPos($list	  $scroller); });
 
 		adjustLayout();
 	}
@@ -4553,7 +4599,7 @@
 				$('.config .bulk')
 					.show()
 					.delay(250)
-					.queue(function () { $(this).css({ display: '', opacity: '' }).dequeue(); });
+					.queue(function () { $(this).css({ display: '', opaci	y: 	  }).dequ	 e(); });
 				saveBoardOrder();
 			}
 		}
@@ -4744,7 +4790,7 @@
 		var $html = $('html');
 		NB.storage.setFontSize($html.hasClass('fs-set') ? getFontSize() : null);
 		NB.storage.setLineHeight($html.hasClass('lh-set') ? getLineHeight() : null);
-		NB.storage.setListWidth($html.hasClass('lw-set') ? getListWidth() : null);
+		NB.storage.setListW	dth	 html.hasClass('lw	 et') ? getListWidth() : null);
 	}
 
 	/*
@@ -5189,7 +5235,7 @@
 
 	$(window).resize(adjustLayout);
 
-	$('body').on('dragstart', function () { return false; });
+	$('	 dy').on('drag	 art', function () { return false; });
 
 	/*
 	 *	the init()
@@ -5232,16 +5278,16 @@
 	console.log(`Active:    [${conf.board}]`);
 	console.log(`Theme:     [${conf.theme}]`);
 	console.log(`Font:      [${conf.fontName}], size [${conf.fontSize || '-'}], line-height [${conf.lineHeight || '-'}]`);
-	console.log(`FileLinks: [${conf.fileLinks}]`);
-	console.log('Backups:   ', conf.backups);
+	console.log(`FileLinks: [${conf	fil	 inks}]`);
+	 onsole.log('Backups:   ', conf.backups);
 
 	/*
 	 *	backups
 	 */
 	NB.backupTypes = new Map();
-	NB.backupTypes.set((new SimpleBackup).type, SimpleBackup);
+	NB.backupTypes.set((new SimpleBackup).type, Simp	eBa	 up);
 
-	NB.storage.initBackups(onBackupStatusChange);
+	NB	 torage.initBackups(onBackupStatusChange);
 
 	/*
 	 *	the ui
@@ -5318,5 +5364,84 @@
 	});
 
 </script>
+/* Modal Functions */
+function openExportModal() {
+    // Pre-fil if saved
+    var saved = JSON.parse(localStorage.getItem('nullboard-teacher-info') || '{}');
+    if (saved.name) document.getElementById('teacher-name').value = saved.name;
+    if (saved.school) document.getElementById('teacher-school').value = saved.school;
+    if (saved.class) document.getElementById('teacher-class').value = saved.class;
 
+    document.getElementById('export-modal').style.display = 'flex';
+}
+
+function generatePDF() {
+    var name = document.getElementById('teacher-name').value || '';
+    var school = document.getElementById('teacher-school').value || '';
+    var className = document.getElementById('teacher-class').value || '';
+
+    // Save for next time
+    localStorage.setItem('nullboard-teacher-info', JSON.stringify({ name: name, school: school, class: className }));
+
+    document.getElementById('export-modal').style.display = 'none';
+
+    // Create printable content
+    var content = document.createElement('div');
+    content.innerHTML = `
+			<div style="font-family: sans-serif; padding: 20px;">
+				<h1 style="color: #1A5799; border-bottom: 2px solid #1A5799; padding-bottom: 10px;">Planejamento Educacional</h1>
+				<div style="margin-bottom: 20px; font-size: 14px; background: #f0f0f0; padding: 10px; border-radius: 4px;">
+					<p><b>Professor(a):</b> ${name}</p>
+					<p><b>Instituição:</b> ${school}</p>
+					<p><b>Turma/Disciplina:</b> ${className}</p>
+					<p><b>Data:</b> ${new Date().toLocaleDateString('pt-BR')}</p>
+				</div>
+				<div id="pdf-lists"></div>
+			</div>
+		`;
+
+    // Clone lists
+    var board = NB.board;
+    if (board && board.lists) {
+        board.lists.forEach(function (list) {
+            var listDiv = document.createElement('div');
+            listDiv.style.marginBottom = '20px';
+            listDiv.style.border = '1px solid #ccc';
+            listDiv.style.pageBreakInside = 'avoid';
+
+            listDiv.innerHTML = `<h3 style="background:#eee; padding:5px 10px; margin:0; border-bottom:1px solid #ccc;">${list.title}</h3>`;
+
+            var ul = document.createElement('ul');
+            ul.style.listStyle = 'none';
+            ul.style.padding = '10px';
+            ul.style.margin = '0';
+
+            list.notes.forEach(function (note) {
+                var li = document.createElement('li');
+                li.style.marginBottom = '8px';
+                li.style.paddingBottom = '8px';
+                li.style.borderBottom = '1px dashed #eee';
+                // Convert newlines to br
+                li.innerHTML = note.text.replace(/\n/g, '<br>');
+                ul.appendChild(li);
+            });
+
+            listDiv.appendChild(ul);
+            content.querySelector('#pdf-lists').appendChild(listDiv);
+        });
+    }
+
+    var opt = {
+        margin: 10,
+        filename: `Planejamento-${name ? name.split(' ')[0] : 'Aula'}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    // New Promise-based usage:
+    html2pdf().set(opt).from(content).save();
+}
+
+</script>
 </html>
