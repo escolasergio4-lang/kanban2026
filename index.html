@@ -5226,159 +5226,171 @@
 
 		$(window).resize(adjustLayout);
 
-		$('	 dy').on('drag	 art', function () { return false; });
+		$('body').on('dragstart', function () { return false; });
 
 		/*
 		 *	the init()
 		 */
 		var NB =
-			codeVersion	 20231105,
-				blobVersion: 20190412, // board blob format in Storage
-					board: null,
-						storage: null,
+		{
+			codeVersion: 20231105,
+			blobVersion: 20190412, // board blob format in Storage
+			board: null,
+			storage: null,
+			font: null,
+			noteDrag: null,
+			loadDrag: null,
+			varAdjust: null,
 
-							peek: function (name) {
-								return this.storage.getConfig()[name];
-							},
-
-		poke: function (name, val) {
-			var conf = this.storage.getConfig();
-			conf[name] = val;
-			return this.storage.saveConfig();
-		}
-	};
-
-	NB.storage = new Storage_Local();
-
-	if (!NB.storage.open()) {
-		easyMartina = true;
-		throw new Error();
-	}
-
-	var boards = NB.storage.getBoardIndex();
-
-	boards.forEach(function (meta, board_id) {
-		var hist = meta.history.join(', ');
-		console.log(`Found board ${board_id} - "${meta.title}", revision ${meta.current}, history [${hist}], backup ${JSON.stringify(meta.backupStatus)}`);
-	});
-
-	//
-	var conf = NB.storage.getConfig();
-
-	console.log(`Active:    [${conf.board}]`);
-	console.log(`Theme:     [${conf.theme}]`);
-	console.log(`Font:      [${conf.fontName}], size [${conf.fontSize || '-'}], line-height [${conf.lineHeight || '-'}]`);
-	console.log(`FileLinks: [${conf	fil	 inks}]`);
-	 onsole.log('Backups:   ', conf.backups);
-
-	/*
-	 *	backups
-	 */
-	NB.backup	ype	 = new Map(	 
-	NB.backupTypes.set((new SimpleBackup).type, Simp	eBa	 up);
-
-	NB	 torage.initBackups(onBackupStatusChange);
-
-	/*
-	 *	the ui
-	 */
-	initFonts(	;
-
-	 nitDragAn	 rop();
-
-	NB.varAdjust = new VarAdjust()
-
-	//
-	if (conf.theme)
-		$('html').addClass('theme-' + conf.theme);
-
-	if (conf.board)
-		openBoard(conf.board);
-
-	adjustLayout();
-
-	updateBoardIndex();
-
-	setWhatsNew();
-
-	NB.storage.setVerLast();
-
-	//
-	if (!NB.board && !$('.config .load-board').length)
-		NB.board = createInitialBoards();
-
-	if (NB.board)
-		showBoard(true);
-
-	//
-	setInterval(adjustListScroller, 100);
-
-	setupListScrolling();
-
-	// PWA Install Logic
-	if ('serviceWorker' in navigator) {
-		window.addEventListener('load', function () {
-			navigator.serviceWorker.register('sw.js').then(function (registration) {
-				console.log('ServiceWorker registration successful with scope: ', registration.scope);
-			}, function (err) {
-				console.log('ServiceWorker registration failed: ', err);
-			});
-		});
-	}
-
-	var deferredPrompt;
-	window.addEventListener('beforeinstallprompt', function (e) {
-		e.preventDefault();
-		deferredPrompt = e;
-		var btn = document.getElementById('install-btn');
-		if (btn) btn.style.display = 'block';
-	});
-
-	window.addEventListener('load', function () {
-		var btn = document.createElement('button');
-		btn.id = 'install-btn';
-		btn.innerText = 'Instalar App';
-		btn.style.cssText = 'position: fixed; bottom: 20px; right: 20px; z-index: 1000; padding: 15px 20px; background-color: #1489db; color: white; border: none; border-radius: 50px; font-size: 16px; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: none; cursor: pointer; transition: transform 0.2s;';
-		btn.onclick = function () {
-			btn.style.display = 'none';
-			if (deferredPrompt) {
-				deferredPrompt.prompt();
-				deferredPrompt.userChoice.then(function (choiceResult) {
-					deferredPrompt = null;
-				});
+			peek: function (key) {
+				return this.storage.conf[key];
 			}
 		};
-		btn.onmouseover = function () { this.style.transform = 'scale(1.05)'; };
-		btn.onmouseout = function () { this.style.transform = 'scale(1.0)'; };
-		document.body.appendChild(btn);
-	});
+
+		function createInitialBoards() {
+			var board = new Board('Tutorial');
+			var l1 = board.addList('Bem-vindo');
+			l1.addNote('Este é o Nullboard, um quadro kanban minimalista.');
+			l1.addNote('Crie novas listas e notas para se organizar.');
+			var l2 = board.addList('A Fazer');
+			l2.addNote('Experimente arrastar este cartão.');
+			l2.addNote('Clique no texto para editar.');
+			var l3 = board.addList('Feito');
+			l3.addNote('Exportar meus dados em backup/PDF.');
+			return board;
+		}
+
+		NB.storage = new Storage_Local();
+
+		if (!NB.storage.open()) {
+			easyMartina = true;
+			throw new Error();
+		}
+
+		var boards = NB.storage.getBoardIndex();
+
+		boards.forEach(function (meta, board_id) {
+			var hist = meta.history.join(', ');
+			console.log(`Found board ${board_id} - "${meta.title}", revision ${meta.current}, history [${hist}], backup ${JSON.stringify(meta.backupStatus)}`);
+		});
+
+		//
+		var conf = NB.storage.getConfig();
+
+		console.log(`Active:    [${conf.board}]`);
+		console.log(`Theme:     [${conf.theme}]`);
+		console.log(`Font:      [${conf.fontName}], size [${conf.fontSize || '-'}], line-height [${conf.lineHeight || '-'}]`);
+		console.log(`FileLinks: [${conf.fileLinks}]`);
+		console.log('Backups:   ', conf.backups);
+
+		/*
+		 *	backups
+		 */
+		NB.backupTypes = new Map();
+		NB.backupTypes.set((new SimpleBackup).type, SimpleBackup);
+
+		NB.storage.initBackups(onBackupStatusChange);
+
+		/*
+		 *	the ui
+		 */
+		initFonts();
+
+		DragAndDrop();
+
+		NB.varAdjust = new VarAdjust()
+
+		//
+		if (conf.theme)
+			$('html').addClass('theme-' + conf.theme);
+
+		if (conf.board)
+			openBoard(conf.board);
+
+		adjustLayout();
+
+		updateBoardIndex();
+
+		setWhatsNew();
+
+		NB.storage.setVerLast();
+
+		//
+		if (!NB.board && !$('.config .load-board').length)
+			NB.board = createInitialBoards();
+
+		if (NB.board)
+			showBoard(true);
+
+		//
+		setInterval(adjustListScroller, 100);
+
+		setupListScrolling();
+
+		// PWA Install Logic
+		if ('serviceWorker' in navigator) {
+			window.addEventListener('load', function () {
+				navigator.serviceWorker.register('sw.js').then(function (registration) {
+					console.log('ServiceWorker registration successful with scope: ', registration.scope);
+				}, function (err) {
+					console.log('ServiceWorker registration failed: ', err);
+				});
+			});
+		}
+
+		var deferredPrompt;
+		window.addEventListener('beforeinstallprompt', function (e) {
+			e.preventDefault();
+			deferredPrompt = e;
+			var btn = document.getElementById('install-btn');
+			if (btn) btn.style.display = 'block';
+		});
+
+		window.addEventListener('load', function () {
+			var btn = document.createElement('button');
+			btn.id = 'install-btn';
+			btn.innerText = 'Instalar App';
+			btn.style.cssText = 'position: fixed; bottom: 20px; right: 20px; z-index: 1000; padding: 15px 20px; background-color: #1489db; color: white; border: none; border-radius: 50px; font-size: 16px; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: none; cursor: pointer; transition: transform 0.2s;';
+			btn.onclick = function () {
+				btn.style.display = 'none';
+				if (deferredPrompt) {
+					deferredPrompt.prompt();
+					deferredPrompt.userChoice.then(function (choiceResult) {
+						deferredPrompt = null;
+					});
+				}
+			};
+			btn.onmouseover = function () { this.style.transform = 'scale(1.05)'; };
+			btn.onmouseout = function () { this.style.transform = 'scale(1.0)'; };
+			document.body.appendChild(btn);
+		});
 </script>
 
 <script type="text/javascript">
-/* Modal Functions */
-function openExportModal() {
-    // Pre-fil if saved
-    var saved = JSON.parse(localStorage.getItem('nullboard-teacher-info') || '{}');
-    if (saved.ame) document.getElementById('teacher-name').value = saved.name;
-    if (saved.school) document.getElementById('teacher-school').value = saved.school;
-    if (saved.class) document.getElementById('teacher-class').value = saved.class;
+		/* Modal Functions */
+		function openExportModal() {
+			// Pre-fil if saved
+			var saved = JSON.parse(localStorage.getItem('nullboard-teacher-info') || '{}');
+			if (saved.ame) document.getElementById('teacher-name').value = saved.name;
+			if (saved.school) document.getElementById('teacher-school').value = saved.school;
+			if (saved.class) document.getElementById('teacher-class').value = saved.class;
 
-    document.getElementById('export-modal').style.display = 'flex';
-}
+			document.getElementById('export-modal').style.display = 'flex';
+		}
 
-function generatePDF() {
-    var name = document.getElementById('teacher-name').value || '';
-    var school = document.getElementById('teacher-school').value || '';
-    var className = document.getElementById('teacher-class').value || '';
+		function generatePDF() {
+			var name = document.getElementById('teacher-name').value || '';
+			var school = document.getElementById('teacher-school').value || '';
+			var className = document.getElementById('teacher-class').value || '';
 
-    // Save for next time
-    localStorage.setItem('nullboard-teacher-info', JSON.stringify({ name: name, school: school, class: className }));
+			// Save for next time
+			localStorage.setItem('nullboard-teacher-info', JSON.stringify({ name: name, school: school, class: className }));
 
-    document.getElementById('export-modal').style.display = 'none';
+			document.getElementById('export-modal').style.display = 'none';
 
-    // Create printable content
-    var content = document.createElement('div');
-    content.innerHTML = `
+			// Create printable content
+			var content = document.createElement('div');
+			content.innerHTML = `
 		< div style = "font-family: sans-serif; padding: 20px;" >
 				<h1 style="color: #1A5799; border-bottom: 2px solid #1A5799; padding-bottom: 10px;">Planejamento Educacional</h1>
 				<div style="margin-bottom: 20px; font-size: 14px; background: #f0f0f0; padding: 10px; border-radius: 4px;">
@@ -5391,48 +5403,48 @@ function generatePDF() {
 			</div >
 		`;
 
-    // Clone lists
-    var board = NB.board;
-    if (board && board.lists) {
-        board.lists.forEach(function (list) {
-            var listDiv = document.createElement('div');
-            listDiv.style.marginBottom = '20px';
-            listDiv.style.border = '1px solid #ccc';
-            listDiv.style.pageBreakInside = 'avoid';
+			// Clone lists
+			var board = NB.board;
+			if (board && board.lists) {
+				board.lists.forEach(function (list) {
+					var listDiv = document.createElement('div');
+					listDiv.style.marginBottom = '20px';
+					listDiv.style.border = '1px solid #ccc';
+					listDiv.style.pageBreakInside = 'avoid';
 
-            listDiv.innerHTML = `< h3 style = "background:#eee; padding:5px 10px; margin:0; border-bottom:1px solid #ccc;" > ${ list.title }</h3 > `;
+					listDiv.innerHTML = `< h3 style = "background:#eee; padding:5px 10px; margin:0; border-bottom:1px solid #ccc;" > ${list.title}</h3 > `;
 
-            var ul = document.createElement('ul');
-            ul.style.listStyle = 'none';
-            ul.style.padding = '10px';
-            ul.style.margin = '0';
+					var ul = document.createElement('ul');
+					ul.style.listStyle = 'none';
+					ul.style.padding = '10px';
+					ul.style.margin = '0';
 
-            list.notes.forEach(function (note) {
-                var li = document.createElement('li');
-                li.style.marginBottom = '8px';
-                li.style.paddingBottom = '8px';
-                li.style.borderBottom = '1px dashed #eee';
-                // Convert newlines to br
-                li.innerHTML = note.text.replace(/\n/g, '<br>');
-                ul.appendChild(li);
-            });
+					list.notes.forEach(function (note) {
+						var li = document.createElement('li');
+						li.style.marginBottom = '8px';
+						li.style.paddingBottom = '8px';
+						li.style.borderBottom = '1px dashed #eee';
+						// Convert newlines to br
+						li.innerHTML = note.text.replace(/\n/g, '<br>');
+						ul.appendChild(li);
+					});
 
-            listDiv.appendChild(ul);
-            content.querySelector('#pdf-lists').appendChild(listDiv);
-        });
-    }
+					listDiv.appendChild(ul);
+					content.querySelector('#pdf-lists').appendChild(listDiv);
+				});
+			}
 
-    var opt = {
-        margin: 10,
-        filename: `Planejamento - ${ name? name.split(' ')[0] : 'Aula'}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    };
+			var opt = {
+				margin: 10,
+				filename: `Planejamento - ${name ? name.split(' ')[0] : 'Aula'}.pdf`,
+				image: { type: 'jpeg', quality: 0.98 },
+				html2canvas: { scale: 2 },
+				jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+			};
 
-    // New Promise-based usage:
-    html2pdf().set(opt).from(content).save();
-}
+			// New Promise-based usage:
+			html2pdf().set(opt).from(content).save();
+		}
 
 </script>
 
